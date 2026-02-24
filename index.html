@@ -18,8 +18,28 @@
         .mode-btn { padding: 10px 20px; border: 2px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .mode-btn.active { border-color: var(--p-color); background: var(--p-color); color: white; }
 
-        .char-card-container { display: flex; gap: 15px; margin-top: 10px; padding-bottom: 50px; }
-        .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
+        /* キャラクター選択エリアを2列にする修正 */
+        .char-card-container { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* 2列固定 */
+            gap: 15px; 
+            margin-top: 10px; 
+            padding: 0 20px 50px 20px; /* 左右に余白を追加 */
+            width: 100%;
+            max-width: 500px; /* 広がりすぎ防止 */
+        }
+        
+        .char-card { 
+            width: 100%; /* 親要素のグリッド幅に合わせる */
+            border: 3px solid #eee; 
+            border-radius: 20px; 
+            padding: 10px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            text-align: center; 
+            background: #fff; 
+            box-sizing: border-box; /* パディングを含めたサイズ計算 */
+        }
         .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
         .char-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; background: #eee; pointer-events: none; }
 
