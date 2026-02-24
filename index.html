@@ -10,52 +10,98 @@
         :root { --p-color: #00d2ff; --c-color: #ff4757; --accent-gold: #ffcc00; }
         body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; touch-action: manipulation; }
         
-        /* 選択画面 */
-        #selector-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .char-card-container { display: flex; gap: 15px; margin-top: 30px; }
+        /* タイトル・選択画面 */
+        .overlay-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
+        .how-to-play { max-width: 500px; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 2px dashed #ccc; font-size: 0.85rem; }
+        .rule-badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; font-weight: bold; margin-right: 5px; }
+        
+        .char-card-container { display: flex; gap: 15px; margin-top: 10px; padding-bottom: 50px; }
         .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
         .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
         .char-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; background: #eee; pointer-events: none; }
 
-        /* バトルステージ */
+        /* リザルト画面 */
+        #result-screen { display: none; background: rgba(255,255,255,0.98); z-index: 8000; align-items: center; justify-content: center; }
+        .result-box { text-align: center; padding: 50px; border-radius: 40px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); background: white; border: 8px solid #f0f0f0; max-width: 90%; }
+
+        /* バトルステージ（以前のレイアウトを維持） */
         .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
         .board-wrapper { flex: 1; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
         
         .portrait { width: 70px; height: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-size: cover; background-position: center; margin-bottom: 10px; }
         .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; border: 2px solid #eee; }
         .energy-fill { height: 100%; width: 0%; transition: width 0.2s cubic-bezier(0, 1, 0.5, 1); }
+        .energy-penalty { animation: penalty-flash 0.5s; background: #333 !important; }
+        @keyframes penalty-flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; }
+        .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; table-layout: fixed; }
         .sudoku-grid td { border: 1px solid #ddd; width: 25%; padding: 0; position: relative; }
         .bold-right { border-right: 4px solid #333 !important; }
         .bold-bottom { border-bottom: 4px solid #333 !important; }
-        .cell { width: 100%; padding-top: 100%; position: relative; }
-        input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; text-align: center; font-size: 2rem; font-weight: 800; background: transparent; transition: 0.2s; -moz-appearance: textfield; }
-        input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input:disabled { background: #f0f0f0; color: #555; }
-        input.wrong { color: #ff4757; background: rgba(255, 71, 87, 0.1); }
+        .cell { width: 100%; aspect-ratio: 1/1; position: relative; cursor: pointer; }
+        .cell-value { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; }
+        .fixed { background: #f0f0f0; color: #555; }
+        .wrong { color: #ff4757; background: rgba(255, 71, 87, 0.2); animation: shake-anim 0.3s; }
+
+        /* 十字セレクター */
+        #cross-selector { position: absolute; display: none; width: 140px; height: 140px; z-index: 6000; pointer-events: none; }
+        .cross-btn { 
+            position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; 
+            background: white; color: #333; font-weight: 900; font-size: 1.4rem; 
+            display: flex; align-items: center; justify-content: center; 
+            pointer-events: auto; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 #333;
+        }
+        .cross-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #333; background: var(--p-color); color: white; }
+        .btn-up { top: 0; left: 48px; } .btn-right { top: 48px; right: 0; } .btn-down { bottom: 0; left: 48px; } .btn-left { top: 48px; left: 0; }
 
         .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 0 #999; font-size: 1.2rem; }
         .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #3a7bd5); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #0076bb; }
-        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; opacity: 0; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
         .cutin.active { left: 0; opacity: 1; }
         .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3.5rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
-        .shake { animation: shake-anim 0.4s both; }
         @keyframes shake-anim { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+        .shake { animation: shake-anim 0.4s both; }
     </style>
 </head>
 <body>
 
-<div id="selector-screen">
-    <h1 class="font-weight-bold mb-0">UNIT SELECT</h1>
-    <p class="text-muted">相棒を選んでBATTLE START</p>
-    <div class="char-card-container">
-        <div class="char-card" onclick="playSelectAndStart('AKIRA')"><img src="akira.jpg"><h5>AKIRA</h5><small>電子固定</small></div>
-        <div class="char-card" onclick="playSelectAndStart('KOTO')"><img src="koto.jpg"><h5>KOTO</h5><small>事象封印</small></div>
-        <div class="char-card" onclick="playSelectAndStart('LUX')"><img src="lux.jpg"><h5>LUX</h5><small>光子透過</small></div>
+<div id="selector-screen" class="overlay-screen">
+    <h1 class="font-weight-bold mb-3">QUANTUM BATTLE</h1>
+    <div id="win-streak-badge" class="badge badge-primary mb-3" style="display:none; font-size:1.2rem; padding:10px 20px; border-radius:20px;">0 Win Streak</div>
+    <div class="how-to-play">
+        <h5 class="font-weight-bold mb-3 text-center">⚔️ 遊び方とルール</h5>
+        <ul class="list-unstyled mb-0">
+            <li>🔹 マスをクリックし、現れるボタンで入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
+            <li>🔹 列が揃うと攻撃。ミスするとゲージが0になります！</li>
+            <li class="mt-2 small">⚡ <b>AKIRA:</b> ヒントを2つ生成 / 🔮 <b>KOTO:</b> 3連続攻撃</li>
+            <li class="small">☀️ <b>LUX:</b> 空欄の半分を即座に埋める（チャージ低速）</li>
+        </ul>
     </div>
+    <p class="text-muted font-weight-bold">ユニットを選択して開始</p>
+    <div class="char-card-container">
+        <div class="char-card" onclick="playSelectAndStart('AKIRA')"><img src="akira.jpg"><h5>AKIRA</h5></div>
+        <div class="char-card" onclick="playSelectAndStart('KOTO')"><img src="koto.jpg"><h5>KOTO</h5></div>
+        <div class="char-card" onclick="playSelectAndStart('LUX')"><img src="lux.jpg"><h5>LUX</h5></div>
+    </div>
+</div>
+
+<div id="result-screen" class="overlay-screen">
+    <div class="result-box">
+        <h1 id="result-title" class="display-3 font-weight-bold mb-4"></h1>
+        <div class="mb-4">
+            <button class="btn btn-lg btn-primary px-5 py-3 mb-3 rounded-pill font-weight-bold" onclick="rematch()">REMATCH (再戦)</button><br>
+            <button class="btn btn-outline-secondary px-5 rounded-pill" onclick="toTitle()">BACK TO TITLE</button>
+        </div>
+        <p id="result-streak-info" class="h5 text-muted"></p>
+    </div>
+</div>
+
+<div id="cross-selector">
+    <div class="cross-btn btn-up" onclick="selectNumber(1)">1</div>
+    <div class="cross-btn btn-right" onclick="selectNumber(2)">2</div>
+    <div class="cross-btn btn-down" onclick="selectNumber(3)">3</div>
+    <div class="cross-btn btn-left" onclick="selectNumber(4)">4</div>
 </div>
 
 <div id="cutin-bar" class="cutin">
@@ -65,7 +111,7 @@
 
 <div class="battle-stage">
     <div class="board-wrapper" id="p-wrap">
-        <div class="portrait" id="p-portrait" style="border-color:var(--p-color)"></div>
+        <div class="portrait" id="p-portrait"></div>
         <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
         <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
         <table id="p-grid" class="sudoku-grid"></table>
@@ -74,7 +120,7 @@
     </div>
 
     <div class="board-wrapper" id="c-wrap">
-        <div class="portrait" id="c-portrait" style="border-color:var(--c-color)"></div>
+        <div class="portrait" id="c-portrait"></div>
         <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
         <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
         <table id="c-grid" class="sudoku-grid"></table>
@@ -90,33 +136,40 @@ const units = {
     KOTO: { img: 'koto.jpg', skill: '事象封印 [Event Seal]', color: '#9d50bb' },
     LUX: { img: 'lux.jpg', skill: '光子透過 [Photon Leap]', color: '#ffcc00' }
 };
-let pUnit, cUnit, ansGrid = [], isBusy = false;
-let pEn = 0, cEn = 0;
-let bgmAudio;
+let pUnit, cUnit, ansGrid = [], isBusy = false, activeCell = null, gameActive = false;
+let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 
-// --- 音声コア ---
-function playSE(file) {
-    const audio = new Audio(file);
-    audio.play().catch(e => {});
-}
+function playSE(file) { new Audio(file).play().catch(e=>{}); }
 
 function playSelectAndStart(choice) {
+    pUnit = choice;
     playSE('select.mp3');
-    setTimeout(() => initGame(choice), 200);
+    setTimeout(() => initGame(), 200);
 }
 
-function startBGM() {
-    bgmAudio = new Audio('bgm.mp3');
-    bgmAudio.loop = true;
-    bgmAudio.volume = 0.4;
-    bgmAudio.play().catch(e => {});
+function initGame() {
+    gameActive = true;
+    cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
+    ansGrid = generateSol();
+    pEn = 0; cEn = 0;
+    
+    // UI反映
+    $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
+    $('#c-portrait').css('background-image', `url(${units[cUnit].img})`);
+    $('#p-name-label').text(pUnit);
+    $('#c-name-label').text(cUnit);
+    
+    if(!bgmAudio) { bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.4; }
+    bgmAudio.play().catch(e=>{});
+
+    $('#selector-screen, #result-screen').fadeOut(300);
+    $('#p-grid, #c-grid').empty().data('c', 0);
+    setupBoards();
+    gameLoop();
 }
 
-// --- 数独生成 ---
 function generateSol() {
     const grid = Array.from({length:4}, () => Array(4).fill(0));
-    const nums = [1,2,3,4];
-    const shuffle = (a) => a.sort(() => Math.random() - 0.5);
     const check = (r, c, v) => {
         for(let i=0; i<4; i++) if(grid[r][i] === v || grid[i][c] === v) return false;
         let br = Math.floor(r/2)*2, bc = Math.floor(c/2)*2;
@@ -125,31 +178,11 @@ function generateSol() {
     };
     const fill = (pos) => {
         if(pos === 16) return true;
-        let r = Math.floor(pos/4), c = pos%4;
-        for(let v of shuffle([...nums])) {
-            if(check(r, c, v)) {
-                grid[r][c] = v;
-                if(fill(pos+1)) return true;
-                grid[r][c] = 0;
-            }
-        }
+        let r = Math.floor(pos/4), c = pos%4, nums = [1,2,3,4].sort(()=>Math.random()-0.5);
+        for(let v of nums) if(check(r,c,v)){ grid[r][c]=v; if(fill(pos+1)) return true; grid[r][c]=0; }
         return false;
     };
-    fill(0);
-    return grid;
-}
-
-function initGame(choice) {
-    pUnit = choice;
-    cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
-    ansGrid = generateSol();
-    $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
-    $('#c-portrait').css('background-image', `url(${units[cUnit].img})`);
-    $('#p-name-label').text(pUnit);
-    $('#c-name-label').text(cUnit);
-    startBGM();
-    $('#selector-screen').fadeOut(500);
-    setupBoards();
+    fill(0); return grid;
 }
 
 function setupBoards() {
@@ -159,145 +192,151 @@ function setupBoards() {
             html += '<tr>';
             for(let c=0; c<4; c++){
                 let cls = `${r===1?'bold-bottom':''} ${c===1?'bold-right':''}`;
-                html += `<td class="${cls}"><div class="cell"><input type="number" id="${id}_${r}_${c}" ${id==='c'?'disabled':''}></div></td>`;
+                html += `<td class="${cls}"><div class="cell" id="${id}_${r}_${c}" onclick="openCrossSelector(this)"><div class="cell-value"></div></div></td>`;
             }
             html += '</tr>';
         }
         $(`#${id}-grid`).append(html);
     });
-    let count = 0;
-    while(count < 4) {
+    // 連勝するほど初期ヒントが減る
+    let hintCount = Math.max(1, 4 - Math.floor(winStreak / 2));
+    for(let i=0; i<hintCount; i++){
         let r = Math.floor(Math.random()*4), c = Math.floor(Math.random()*4);
-        if(!$(`#p_${r}_${c}`).val()){
-            let val = ansGrid[r][c];
-            $(`#p_${r}_${c}`).val(val).prop('disabled', true);
-            $(`#c_${r}_${c}`).val(val).prop('disabled', true);
-            count++;
+        if(!$(`#p_${r}_${c}`).hasClass('fixed')){
+            $(`#p_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]);
+            $(`#c_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]);
         }
     }
-    gameLoop();
 }
 
-function checkMatch(prefix) {
-    const id = prefix + '-grid';
-    let correctLines = 0;
+function openCrossSelector(el) {
+    if(!gameActive || $(el).hasClass('fixed') || el.id.startsWith('c')) return;
+    activeCell = el;
+    let pos = $(el).offset();
+    let cellW = $(el).width();
+    $('#cross-selector').css({ top: pos.top + cellW/2 - 70, left: pos.left + cellW/2 - 70 }).fadeIn(100);
+}
+
+function selectNumber(num) {
+    if(!activeCell) return;
+    $('#cross-selector').fadeOut(100);
+    let idParts = activeCell.id.split('_');
+    let r = parseInt(idParts[1]), c = parseInt(idParts[2]);
+    
+    if(num !== ansGrid[r][c]) {
+        $(activeCell).addClass('wrong'); pEn = 0; $('#p-energy').addClass('energy-penalty');
+        setTimeout(() => { $(activeCell).removeClass('wrong'); $('#p-energy').removeClass('energy-penalty'); }, 500);
+    } else {
+        $(activeCell).removeClass('wrong').addClass('fixed'); $(activeCell).find('.cell-value').text(num);
+        pEn = Math.min(100, pEn + 8); checkMatch('p');
+    }
+    activeCell = null; checkWin();
+}
+
+function checkMatch(pre) {
+    let count = 0;
     for(let i=0; i<4; i++){
-        let rowMatch = true, colMatch = true;
+        let rM=true, cM=true;
         for(let j=0; j<4; j++){
-            if(parseInt($(`#${prefix}_${i}_${j}`).val()) !== ansGrid[i][j]) rowMatch = false;
-            if(parseInt($(`#${prefix}_${j}_${i}`).val()) !== ansGrid[j][i]) colMatch = false;
+            if($(`#${pre}_${i}_${j}`).find('.cell-value').text() != ansGrid[i][j]) rM=false;
+            if($(`#${pre}_${j}_${i}`).find('.cell-value').text() != ansGrid[j][i]) cM=false;
         }
-        if(rowMatch) correctLines++;
-        if(colMatch) correctLines++;
+        if(rM) count++; if(cM) count++;
     }
-    const last = $(`#${id}`).data('correct') || 0;
-    if(correctLines > last) {
-        $(`#${id}`).data('correct', correctLines);
+    if(count > ($(`#${pre}-grid`).data('c')||0)) {
+        $(`#${pre}-grid`).data('c', count);
         playSE('attack.m4a');
-        $(`#${prefix}-attack-pop`).show().addClass('bounceIn').fadeOut(1000);
-        executeSingleAttack(prefix === 'p' ? 'c' : 'p');
+        $(`#${pre}-attack-pop`).show().fadeOut(1000);
+        let target = pre==='p'?'c':'p';
+        $(`#${target}-grid`).addClass('shake');
+        setTimeout(()=> $(`#${target}-grid`).removeClass('shake'), 400);
+        let filled = [];
+        for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
+            let $el = $(`#${target}_${r}_${c}`);
+            if($el.hasClass('fixed') && !$el.attr('data-init')) filled.push($el);
+        }
+        if(filled.length > 0) filled[Math.floor(Math.random()*filled.length)].removeClass('fixed').find('.cell-value').text('');
     }
 }
 
-function executeSingleAttack(target) {
-    $(`#${target}-grid`).addClass('shake');
-    setTimeout(() => $(`#${target}-grid`).removeClass('shake'), 400);
-    let filled = [];
-    for(let r=0; r<4; r++) for(let c=0; c<4; c++){
-        let $el = $(`#${target}_${r}_${c}`);
-        if(!$el.prop('disabled') && $el.val()) filled.push($el);
-    }
-    if(filled.length > 0) {
-        let targetEl = filled[Math.floor(Math.random()*filled.length)];
-        targetEl.val('');
-    }
-}
-
-async function useSkill(isCPU = false) {
-    if(!isCPU && (pEn < 100 || isBusy)) return;
+function useSkill(isCPU=false) {
+    if(!gameActive || (!isCPU && (pEn < 100 || isBusy))) return;
     isBusy = true;
     const u = isCPU ? cUnit : pUnit;
     $('#cutin-img').css('background-image', `url(${units[u].img})`);
-    $('#cutin-name').text(u);
-    $('#cutin-skill').text(units[u].skill);
-    $('#cutin-bar').addClass('active');
-    playSE('ultimate.m4a');
-
+    $('#cutin-name').text(u); $('#cutin-skill').text(units[u].skill);
+    $('#cutin-bar').addClass('active'); playSE('ultimate.m4a');
+    
     setTimeout(() => {
-        const tid = isCPU ? 'c' : 'p';
-        const opp = isCPU ? 'p' : 'c';
-        if(u === 'AKIRA') {
-            let f = 0;
-            for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
-                if(!$(`#${tid}_${r}_${c}`).val() && f < 2) {
-                    $(`#${tid}_${r}_${c}`).val(ansGrid[r][c]).prop('disabled', true);
-                    f++;
-                }
+        let tid = isCPU?'c':'p';
+        if(u==='AKIRA'){
+            let f=0;
+            for(let r=0; r<4; r++) for(let c=0; c<4; c++)
+                if(!$(`#${tid}_${r}_${c}`).hasClass('fixed') && f<2){ $(`#${tid}_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]); f++; }
+        } else if(u==='KOTO'){
+            for(let i=0; i<3; i++) setTimeout(()=>checkMatch(tid), i*200);
+        } else if(u==='LUX'){
+            let empty = [];
+            for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
+            let fillCount = Math.ceil(empty.length/2);
+            for(let i=0; i<fillCount; i++){
+                if(empty.length===0) break;
+                let cell = empty.splice(Math.floor(Math.random()*empty.length),1)[0];
+                $(`#${tid}_${cell.r}_${cell.c}`).addClass('fixed').find('.cell-value').text(ansGrid[cell.r][cell.c]);
             }
-        } else if(u === 'KOTO') {
-            for(let i=0; i<3; i++) {
-                setTimeout(() => { executeSingleAttack(opp); playSE('attack.m4a'); }, i * 150);
-            }
-        } else if(u === 'LUX') {
-            for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).val()) $(`#${tid}_${r}_${c}`).val(ansGrid[r][c]);
-            playSE('attack.m4a');
         }
-        if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
-        $('#cutin-bar').removeClass('active');
-        isBusy = false;
-        checkMatch(tid);
-        checkWin();
+        if(isCPU) cEn=0; else { pEn=0; $('#p-skill-btn').removeClass('ready'); }
+        $('#cutin-bar').removeClass('active'); isBusy=false; checkWin();
     }, 1000);
 }
 
 function gameLoop() {
+    if(!gameActive) return;
     if(!isBusy) {
-        // CPUのチャージ速度をさらに弱体化 (0.3)
-        pEn = Math.min(100, pEn + 0.6);
-        cEn = Math.min(100, cEn + 0.3);
-        $('#p-energy').css('width', pEn+'%');
-        $('#c-energy').css('width', cEn+'%');
-        if(pEn >= 100) $('#p-skill-btn').addClass('ready');
-        if(cEn >= 100) useSkill(true);
+        let cpuBonus = Math.min(0.4, winStreak * 0.06); 
+        pEn = Math.min(100, pEn + (pUnit==='LUX'?0.2:0.6));
+        cEn = Math.min(100, cEn + (cUnit==='LUX'?0.15:0.3) + cpuBonus);
+        $('#p-energy').css('width', pEn+'%'); $('#c-energy').css('width', cEn+'%');
+        if(pEn>=100) $('#p-skill-btn').addClass('ready');
+        if(cEn>=100) useSkill(true);
+    }
+    let cpuThinkingChance = 0.96 - Math.min(0.04, winStreak * 0.01);
+    if(Math.random() > cpuThinkingChance && !isBusy){
+        let empty = [];
+        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
+        if(empty.length>0){ let t = empty[Math.floor(Math.random()*empty.length)]; $(`#c_${t.r}_${t.c}`).addClass('fixed').find('.cell-value').text(ansGrid[t.r][t.c]); checkMatch('c'); }
     }
     setTimeout(gameLoop, 250);
-
-    // CPUの思考頻度を大幅ダウン (5%の確率)
-    if(Math.random() > 0.95 && !isBusy) {
-        let empty = [];
-        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).val()) empty.push({r,c});
-        if(empty.length > 0) {
-            let t = empty[Math.floor(Math.random()*empty.length)];
-            $(`#c_${t.r}_${t.c}`).val(ansGrid[t.r][t.c]);
-            checkMatch('c');
-        }
-    }
 }
-
-$(document).on('input', '#p-grid input', function() {
-    let val = parseInt($(this).val());
-    if(!val) return;
-    // プレイヤーの正解ボーナスを強化
-    pEn = Math.min(100, pEn + 8); 
-    let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
-    if(val !== ansGrid[r][c]) $(this).addClass('wrong');
-    else {
-        $(this).removeClass('wrong');
-        checkMatch('p');
-    }
-    checkWin();
-});
 
 function checkWin() {
+    if(!gameActive) return;
     const full = (pre) => {
-        for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
-            if(parseInt($(`#${pre}_${r}_${c}`).val()) !== ansGrid[r][c]) return false;
-        }
+        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if($(`#${pre}_${r}_${c}`).find('.cell-value').text() != ansGrid[r][c]) return false;
         return true;
     };
-    if(full('p')) { alert("VICTORY!"); location.reload(); }
-    if(full('c')) { alert("DEFEAT..."); location.reload(); }
+    if(full('p')) showResult(true);
+    else if(full('c')) showResult(false);
 }
+
+function showResult(isWin) {
+    gameActive = false;
+    if(isWin) winStreak++; else winStreak = 0;
+    $('#result-title').text(isWin ? "VICTORY!" : "DEFEAT...");
+    $('#result-title').css('color', isWin ? 'var(--p-color)' : 'var(--c-color)');
+    $('#result-streak-info').text(isWin ? `Current Win Streak: ${winStreak}` : "連勝が途絶えました...");
+    $('#result-screen').css('display', 'flex').hide().fadeIn(500);
+    
+    if(winStreak > 0) $('#win-streak-badge').text(`${winStreak} Win Streak`).show();
+    else $('#win-streak-badge').hide();
+}
+
+function rematch() { $('#result-screen').fadeOut(300, () => initGame()); }
+function toTitle() { $('#result-screen').fadeOut(300); $('#selector-screen').fadeIn(300); }
+
+$(document).on('mousedown touchstart', function(e) { 
+    if(!$("#cross-selector").is(e.target) && $("#cross-selector").has(e.target).length === 0) $("#cross-selector").fadeOut(100); 
+});
 </script>
 </body>
 </html>
