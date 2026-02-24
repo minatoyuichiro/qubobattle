@@ -308,9 +308,49 @@ function useSkill(isCPU=false) {
 
 function openSelector(el) {
     if(!gameActive || $(el).hasClass('fixed') || el.id.startsWith('c')) return;
-    activeCell = el; let pos = $(el).offset();
-    if(gridSize === 4) $('#cross-selector').css({ top: pos.top + $(el).height()/2 - 70, left: pos.left + $(el).width()/2 - 70 }).fadeIn(100);
-    else $('#selector-9x9').css({ top: pos.top - 20, left: pos.left + 40, display: 'grid' }).fadeIn(100);
+    activeCell = el;
+    let pos = $(el).offset();
+    let cellW = $(el).width();
+    let cellH = $(el).height();
+    let screenW = $(window).width();
+    let screenH = $(window).height();
+
+    if(gridSize === 4) {
+        // 十字セレクター (140px x 140px)
+        let selSize = 140;
+        let targetTop = pos.top + cellH / 2 - selSize / 2;
+        let targetLeft = pos.left + cellW / 2 - selSize / 2;
+
+        // 画面外にはみ出さないように補正
+        targetTop = Math.max(10, Math.min(targetTop, screenH - selSize - 10));
+        targetLeft = Math.max(10, Math.min(targetLeft, screenW - selSize - 10));
+
+        $('#cross-selector').css({
+            top: targetTop,
+            left: targetLeft
+        }).fadeIn(100);
+
+    } else {
+        // 9x9セレクター (約150px x 150px)
+        let selW = 160; 
+        let selH = 160;
+        let targetTop = pos.top - 20;
+        let targetLeft = pos.left + cellW + 10;
+
+        // 右側にはみ出る場合は左側に表示
+        if (targetLeft + selW > screenW) {
+            targetLeft = pos.left - selW - 10;
+        }
+        // 上下のはみ出し補正
+        targetTop = Math.max(10, Math.min(targetTop, screenH - selH - 10));
+        targetLeft = Math.max(10, targetLeft); // 左端も守る
+
+        $('#selector-9x9').css({
+            top: targetTop,
+            left: targetLeft,
+            display: 'grid'
+        }).fadeIn(100);
+    }
 }
 
 function selectNumber(num) {
