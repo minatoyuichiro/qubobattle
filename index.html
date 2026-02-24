@@ -251,7 +251,7 @@ function useSkill(isCPU=false) {
                     filled.splice(idx, 1);
                 }
             }
-        } else if(u === 'LUX') {
+} else if(u === 'LUX') {
             // --- 自分の処理：2マス追加 ---
             let empty = []; 
             $(`#${tid}-grid .cell:not(.fixed)`).each(function(){ empty.push(this); });
@@ -264,42 +264,40 @@ function useSkill(isCPU=false) {
             }
             checkMatch(tid);
 
-            // --- 相手（opponent）への攻撃：天地創造（黄色い波とともに再構成） ---
-            // 相手の盤面全体に「黄色い波」のエフェクトを適用
+            // --- 相手（opponent）への攻撃：天地創造 ---
             $(`#${opponent}-grid .cell`).addClass('gaussian-wave');
 
             setTimeout(() => {
-                // 1. 相手の盤面を完全に初期化
+                // 1. 相手が現在埋めているマスの数をカウント
+                let currentFilledCount = $(`#${opponent}-grid .cell.fixed`).length;
+                
+                // 2. 相手の盤面を完全に初期化
                 $(`#${opponent}-grid .cell`).removeClass('fixed').removeAttr('data-init').text('').css('color', '');
 
-                // 2. 相手用の「新しい正解世界」を生成し、データを上書き
+                // 3. 相手用の「新しい正解世界」を生成
                 const newOpAns = generateSol(gridSize); 
                 if(isCPU) pAns = newOpAns; else cAns = newOpAns;
 
-                // 3. 相手の盤面に「新しい正解」に基づいた初期配置を行う（ヒント-2のペナルティ）
-                let hints = gridSize === 4 ? 4 : 28;
-                let targetHints = Math.max(2, hints - 2); 
+                // 4. 「元の数 - 2」の数だけ新しい正解を配置（最低2マスは残す）
+                let targetHints = Math.max(2, currentFilledCount - 2); 
                 let placed = 0;
-                while(placed < targetHints) {
-                    let r = Math.floor(Math.random() * gridSize);
-                    let c = Math.floor(Math.random() * gridSize);
-                    let targetCell = $(`#${opponent}_${r}_${c}`);
-                    if(!targetCell.hasClass('fixed')) {
-                        targetCell.addClass('fixed').text(newOpAns[r][c]).attr('data-init', 'true');
-                        placed++;
-                    }
+                let cells = [];
+                for(let r=0; r<gridSize; r++) for(let c=0; c<gridSize; c++) cells.push({r,c});
+                cells.sort(() => Math.random() - 0.5);
+
+                for(let i=0; i < targetHints && i < cells.length; i++) {
+                    let {r, c} = cells[i];
+                    $(`#${opponent}_${r}_${c}`).addClass('fixed').text(newOpAns[r][c]).attr('data-init', 'true');
                 }
 
-                // エフェクト終了と衝撃
                 $(`#${opponent}-grid .cell`).removeClass('gaussian-wave');
                 $(`#${opponent}-grid`).addClass('shake');
                 setTimeout(()=> $(`#${opponent}-grid`).removeClass('shake'), 400);
                 
-                // 再構成されたのでマッチング判定をリセット
                 $(`#${opponent}-grid`).data('c', 0); 
                 checkMatch(opponent);
 
-            }, 800); // 演出の溜め時間
+            }, 800);
         }
 
         if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
@@ -331,6 +329,7 @@ function selectNumber(num) {
     activeCell = null; checkWin();
 }
 
+// --- 修正版 checkMatch 関数 ---
 function checkMatch(pre) {
     let m = 0; const sub = Math.sqrt(gridSize);
     let targetAns = pre === 'p' ? pAns : cAns;
@@ -347,24 +346,48 @@ function checkMatch(pre) {
         let b=true; for(let r=0; r<sub; r++) for(let c=0; c<sub; c++) if($(`#${pre}_${br+r}_${bc+c}`).text() != targetAns[br+r][bc+c]) b=false;
         if(b) m++;
     }
+
     if(m > ($(`#${pre}-grid`).data('c')||0)) {
         $(`#${pre}-grid`).data('c', m); playSE('attack.m4a');
         $(`#${pre}-attack-pop`).show().fadeOut(1000);
+        
         let target = pre==='p'?'c':'p';
-        $(`#${target}-grid`).addClass('shake'); setTimeout(()=> $(`#${target}-grid`).removeClass('shake'), 400);
+        $(`#${target}-grid`).addClass('shake'); 
+        setTimeout(()=> $(`#${target}-grid`).removeClass('shake'), 400);
+
+        // 【修正】攻撃成功時、相手のゲージを15%減らす
+        if(pre === 'p') {
+            cEn = Math.max(0, cEn - 15);
+        } else {
+            pEn = Math.max(0, pEn - 15);
+        }
     }
 }
 
-function setup9x9Selector() { let h=''; for(let i=1; i<=9; i++) h+=`<div class="num-btn" onclick="selectNumber(${i})">${i}</div>`; $('#selector-9x9').html(h); }
-
+// --- 修正版 gameLoop 関数 ---
 function gameLoop() {
     if(!gameActive) return;
     if(!isBusy) {
-        pEn = Math.min(100, pEn + 0.4); cEn = Math.min(100, cEn + 0.4 + (winStreak * 0.1));
-        $('#p-energy').css('width', pEn+'%'); $('#c-energy').css('width', cEn+'%');
+        // 【修正】LUXの場合、エネルギー増加量を0.7倍にする
+        let pGain = 0.4;
+        if(pUnit === 'LUX') pGain *= 0.7;
+        
+        // CPUもLUXなら遅くする（公平性のため）
+        let cGain = 0.4 + (winStreak * 0.1);
+        if(cUnit === 'LUX') cGain *= 0.7;
+
+        pEn = Math.min(100, pEn + pGain); 
+        cEn = Math.min(100, cEn + cGain);
+
+        $('#p-energy').css('width', pEn+'%'); 
+        $('#c-energy').css('width', cEn+'%');
+        
         if(pEn>=100) $('#p-skill-btn').addClass('ready');
         if(cEn>=100) useSkill(true);
     }
+
+    // --- 【修正】時間経過による自動埋め処理 ---
+    // CPUの自動埋め（既存）
     if(Math.random() > (0.985 - (winStreak*0.005)) && !isBusy){
         let e = []; $(`#c-grid .cell:not(.fixed)`).each(function(){ e.push(this); });
         if(e.length>0){
@@ -373,8 +396,22 @@ function gameLoop() {
             $(t).addClass('fixed').text(cAns[r][c]); checkMatch('c');
         }
     }
+
+    // プレイヤーの自動埋め（追加：CPUより少し遅めの確率に設定）
+    if(Math.random() > 0.992 && !isBusy){
+        let e = []; $(`#p-grid .cell:not(.fixed)`).each(function(){ e.push(this); });
+        if(e.length>0){
+            let t = e[Math.floor(Math.random()*e.length)];
+            let r = t.id.split('_')[1], c = t.id.split('_')[2];
+            $(t).addClass('fixed').text(pAns[r][c]).css('color', 'var(--p-color)'); 
+            checkMatch('p');
+        }
+    }
+
     setTimeout(gameLoop, 250);
 }
+
+function setup9x9Selector() { let h=''; for(let i=1; i<=9; i++) h+=`<div class="num-btn" onclick="selectNumber(${i})">${i}</div>`; $('#selector-9x9').html(h); }
 
 function checkWin() {
     if(!gameActive) return;
