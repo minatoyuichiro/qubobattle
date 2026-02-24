@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Quantum Sudoku Battle</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --p-color: #00d2ff; --c-color: #ff4757; --accent-gold: #ffcc00; }
+        body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; touch-action: manipulation; }
+        
+        /* 選択画面 */
+        #selector-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .char-card-container { display: flex; gap: 15px; margin-top: 30px; }
+        .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
+        .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
+        .char-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; background: #eee; pointer-events: none; }
+
+        /* バトルステージ */
+        .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .board-wrapper { flex: 1; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
+        
+        .portrait { width: 70px; height: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-size: cover; background-position: center; margin-bottom: 10px; }
+        .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; border: 2px solid #eee; }
+        .energy-fill { height: 100%; width: 0%; transition: width 0.2s cubic-bezier(0, 1, 0.5, 1); }
+
+        .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; }
+        .sudoku-grid td { border: 1px solid #ddd; width: 25%; padding: 0; position: relative; }
+        .bold-right { border-right: 4px solid #333 !important; }
+        .bold-bottom { border-bottom: 4px solid #333 !important; }
+        .cell { width: 100%; padding-top: 100%; position: relative; }
+        input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; text-align: center; font-size: 2rem; font-weight: 800; background: transparent; transition: 0.2s; -moz-appearance: textfield; }
+        input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input:disabled { background: #f0f0f0; color: #555; }
+        input.wrong { color: #ff4757; background: rgba(255, 71, 87, 0.1); }
+
+        .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 0 #999; font-size: 1.2rem; }
+        .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #3a7bd5); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #0076bb; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; opacity: 0; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
+        .cutin.active { left: 0; opacity: 1; }
+        .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3.5rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
+        .shake { animation: shake-anim 0.4s both; }
+        @keyframes shake-anim { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+    </style>
+</head>
+<body>
+
+<div id="selector-screen">
+    <h1 class="font-weight-bold mb-0">UNIT SELECT</h1>
+    <p class="text-muted">相棒を選んでBATTLE START</p>
+    <div class="char-card-container">
+        <div class="char-card" onclick="playSelectAndStart('AKIRA')"><img src="akira.jpg"><h5>AKIRA</h5><small>電子固定</small></div>
+        <div class="char-card" onclick="playSelectAndStart('KOTO')"><img src="koto.jpg"><h5>KOTO</h5><small>事象封印</small></div>
+        <div class="char-card" onclick="playSelectAndStart('LUX')"><img src="lux.jpg"><h5>LUX</h5><small>光子透過</small></div>
+    </div>
+</div>
+
+<div id="cutin-bar" class="cutin">
+    <div id="cutin-img" style="width:140px; height:140px; background-size:cover; border-right:5px solid var(--accent-gold);"></div>
+    <div class="ml-4"><h2 id="cutin-name" class="font-weight-bold mb-0"></h2><h4 id="cutin-skill" class="text-warning small"></h4></div>
+</div>
+
+<div class="battle-stage">
+    <div class="board-wrapper" id="p-wrap">
+        <div class="portrait" id="p-portrait" style="border-color:var(--p-color)"></div>
+        <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
+        <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
+        <table id="p-grid" class="sudoku-grid"></table>
+        <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
+        <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
+    </div>
+
+    <div class="board-wrapper" id="c-wrap">
+        <div class="portrait" id="c-portrait" style="border-color:var(--c-color)"></div>
+        <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
+        <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
+        <table id="c-grid" class="sudoku-grid"></table>
+        <button class="ultimate-btn" disabled>CPU THINKING...</button>
+        <div id="c-attack-pop" class="attack-pop">ATTACK!</div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+const units = {
+    AKIRA: { img: 'akira.jpg', skill: '電子固定 [Fixed Obs.]', color: '#00d2ff' },
+    KOTO: { img: 'koto.jpg', skill: '事象封印 [Event Seal]', color: '#9d50bb' },
+    LUX: { img: 'lux.jpg', skill: '光子透過 [Photon Leap]', color: '#ffcc00' }
+};
+let pUnit, cUnit, ansGrid = [], isBusy = false;
+let pEn = 0, cEn = 0;
+let bgmAudio;
+
+// --- 音声コア ---
+function playSE(file) {
+    const audio = new Audio(file);
+    audio.play().catch(e => {});
+}
+
+function playSelectAndStart(choice) {
+    playSE('select.mp3');
+    setTimeout(() => initGame(choice), 200);
+}
+
+function startBGM() {
+    bgmAudio = new Audio('bgm.mp3');
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.4;
+    bgmAudio.play().catch(e => {});
+}
+
+// --- 数独生成 ---
+function generateSol() {
+    const grid = Array.from({length:4}, () => Array(4).fill(0));
+    const nums = [1,2,3,4];
+    const shuffle = (a) => a.sort(() => Math.random() - 0.5);
+    const check = (r, c, v) => {
+        for(let i=0; i<4; i++) if(grid[r][i] === v || grid[i][c] === v) return false;
+        let br = Math.floor(r/2)*2, bc = Math.floor(c/2)*2;
+        for(let i=0; i<2; i++) for(let j=0; j<2; j++) if(grid[br+i][bc+j] === v) return false;
+        return true;
+    };
+    const fill = (pos) => {
+        if(pos === 16) return true;
+        let r = Math.floor(pos/4), c = pos%4;
+        for(let v of shuffle([...nums])) {
+            if(check(r, c, v)) {
+                grid[r][c] = v;
+                if(fill(pos+1)) return true;
+                grid[r][c] = 0;
+            }
+        }
+        return false;
+    };
+    fill(0);
+    return grid;
+}
+
+function initGame(choice) {
+    pUnit = choice;
+    cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
+    ansGrid = generateSol();
+    $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
+    $('#c-portrait').css('background-image', `url(${units[cUnit].img})`);
+    $('#p-name-label').text(pUnit);
+    $('#c-name-label').text(cUnit);
+    startBGM();
+    $('#selector-screen').fadeOut(500);
+    setupBoards();
+}
+
+function setupBoards() {
+    ['p', 'c'].forEach(id => {
+        let html = '';
+        for(let r=0; r<4; r++){
+            html += '<tr>';
+            for(let c=0; c<4; c++){
+                let cls = `${r===1?'bold-bottom':''} ${c===1?'bold-right':''}`;
+                html += `<td class="${cls}"><div class="cell"><input type="number" id="${id}_${r}_${c}" ${id==='c'?'disabled':''}></div></td>`;
+            }
+            html += '</tr>';
+        }
+        $(`#${id}-grid`).append(html);
+    });
+    let count = 0;
+    while(count < 4) {
+        let r = Math.floor(Math.random()*4), c = Math.floor(Math.random()*4);
+        if(!$(`#p_${r}_${c}`).val()){
+            let val = ansGrid[r][c];
+            $(`#p_${r}_${c}`).val(val).prop('disabled', true);
+            $(`#c_${r}_${c}`).val(val).prop('disabled', true);
+            count++;
+        }
+    }
+    gameLoop();
+}
+
+function checkMatch(prefix) {
+    const id = prefix + '-grid';
+    let correctLines = 0;
+    for(let i=0; i<4; i++){
+        let rowMatch = true, colMatch = true;
+        for(let j=0; j<4; j++){
+            if(parseInt($(`#${prefix}_${i}_${j}`).val()) !== ansGrid[i][j]) rowMatch = false;
+            if(parseInt($(`#${prefix}_${j}_${i}`).val()) !== ansGrid[j][i]) colMatch = false;
+        }
+        if(rowMatch) correctLines++;
+        if(colMatch) correctLines++;
+    }
+    const last = $(`#${id}`).data('correct') || 0;
+    if(correctLines > last) {
+        $(`#${id}`).data('correct', correctLines);
+        playSE('attack.m4a');
+        $(`#${prefix}-attack-pop`).show().addClass('bounceIn').fadeOut(1000);
+        executeSingleAttack(prefix === 'p' ? 'c' : 'p');
+    }
+}
+
+function executeSingleAttack(target) {
+    $(`#${target}-grid`).addClass('shake');
+    setTimeout(() => $(`#${target}-grid`).removeClass('shake'), 400);
+    let filled = [];
+    for(let r=0; r<4; r++) for(let c=0; c<4; c++){
+        let $el = $(`#${target}_${r}_${c}`);
+        if(!$el.prop('disabled') && $el.val()) filled.push($el);
+    }
+    if(filled.length > 0) {
+        let targetEl = filled[Math.floor(Math.random()*filled.length)];
+        targetEl.val('');
+    }
+}
+
+async function useSkill(isCPU = false) {
+    if(!isCPU && (pEn < 100 || isBusy)) return;
+    isBusy = true;
+    const u = isCPU ? cUnit : pUnit;
+    $('#cutin-img').css('background-image', `url(${units[u].img})`);
+    $('#cutin-name').text(u);
+    $('#cutin-skill').text(units[u].skill);
+    $('#cutin-bar').addClass('active');
+    playSE('ultimate.m4a');
+
+    setTimeout(() => {
+        const tid = isCPU ? 'c' : 'p';
+        const opp = isCPU ? 'p' : 'c';
+        if(u === 'AKIRA') {
+            let f = 0;
+            for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
+                if(!$(`#${tid}_${r}_${c}`).val() && f < 2) {
+                    $(`#${tid}_${r}_${c}`).val(ansGrid[r][c]).prop('disabled', true);
+                    f++;
+                }
+            }
+        } else if(u === 'KOTO') {
+            for(let i=0; i<3; i++) {
+                setTimeout(() => { executeSingleAttack(opp); playSE('attack.m4a'); }, i * 150);
+            }
+        } else if(u === 'LUX') {
+            for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).val()) $(`#${tid}_${r}_${c}`).val(ansGrid[r][c]);
+            playSE('attack.m4a');
+        }
+        if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
+        $('#cutin-bar').removeClass('active');
+        isBusy = false;
+        checkMatch(tid);
+        checkWin();
+    }, 1000);
+}
+
+function gameLoop() {
+    if(!isBusy) {
+        // CPUのチャージ速度をさらに弱体化 (0.3)
+        pEn = Math.min(100, pEn + 0.6);
+        cEn = Math.min(100, cEn + 0.3);
+        $('#p-energy').css('width', pEn+'%');
+        $('#c-energy').css('width', cEn+'%');
+        if(pEn >= 100) $('#p-skill-btn').addClass('ready');
+        if(cEn >= 100) useSkill(true);
+    }
+    setTimeout(gameLoop, 250);
+
+    // CPUの思考頻度を大幅ダウン (5%の確率)
+    if(Math.random() > 0.95 && !isBusy) {
+        let empty = [];
+        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).val()) empty.push({r,c});
+        if(empty.length > 0) {
+            let t = empty[Math.floor(Math.random()*empty.length)];
+            $(`#c_${t.r}_${t.c}`).val(ansGrid[t.r][t.c]);
+            checkMatch('c');
+        }
+    }
+}
+
+$(document).on('input', '#p-grid input', function() {
+    let val = parseInt($(this).val());
+    if(!val) return;
+    // プレイヤーの正解ボーナスを強化
+    pEn = Math.min(100, pEn + 8); 
+    let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
+    if(val !== ansGrid[r][c]) $(this).addClass('wrong');
+    else {
+        $(this).removeClass('wrong');
+        checkMatch('p');
+    }
+    checkWin();
+});
+
+function checkWin() {
+    const full = (pre) => {
+        for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
+            if(parseInt($(`#${pre}_${r}_${c}`).val()) !== ansGrid[r][c]) return false;
+        }
+        return true;
+    };
+    if(full('p')) { alert("VICTORY!"); location.reload(); }
+    if(full('c')) { alert("DEFEAT..."); location.reload(); }
+}
+</script>
+</body>
+</html>
