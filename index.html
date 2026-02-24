@@ -4,20 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Quantum Sudoku Battle - 量子ナンプレバトル</title>
-    <meta name="title" content="Quantum Sudoku Battle - 量子ナンプレバトル">
-    <meta name="description" content="必殺技を駆使して戦う超次元ナンプレバトル！量子超越、天地創造の波動で相手を圧倒せよ。">
-    
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://minatoyuichiro.github.io/qubobattle/">
-    <meta property="og:title" content="Quantum Sudoku Battle - 量子ナンプレバトル">
-    <meta property="og:description" content="必殺技を駆使して戦う超次元ナンプレバトル！量子超越、天地創造の波動で相手を圧倒せよ。">
-    <meta property="og:image" content="https://minatoyuichiro.github.io/qubobattle/ogp-image.jpg">
-    
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://minatoyuichiro.github.io/qubobattle/">
-    <meta property="twitter:title" content="Quantum Sudoku Battle - 量子ナンプレバトル">
-    <meta property="twitter:description" content="必殺技を駆使して戦う超次元ナンプレバトル！量子超越、天地創造の波動で相手を圧倒せよ。">
-    <meta property="twitter:image" content="https://minatoyuichiro.github.io/qubobattle/ogp-image.jpg">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
     <style>
@@ -52,30 +38,27 @@
         .fixed { background: #f0f0f0; color: #555; }
         .wrong { color: #ff4757; background: rgba(255, 71, 87, 0.2); animation: shake-anim 0.3s; }
 
-        /* ガウシアン演出 */
         .gaussian-wave { animation: gaussian-pulse 1s ease-out; background: rgba(255, 204, 0, 0.4) !important; z-index: 10; }
         @keyframes gaussian-pulse { 0% { filter: blur(0px); } 50% { filter: blur(10px); transform: scale(1.1); } 100% { filter: blur(0px); } }
 
-        /* セレクター */
         #selector-9x9 { position: fixed; display: none; background: white; border: 3px solid #333; border-radius: 15px; z-index: 9000; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .num-btn { width: 44px; height: 44px; border: 2px solid #333; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         
         #cross-selector { position: absolute; display: none; width: 140px; height: 140px; z-index: 6000; pointer-events: none; }
         .cross-btn { position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; background: white; color: #333; font-weight: 900; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; box-shadow: 0 4px 0 #333; }
 
-        /* ゲージ・ボタン */
         .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; }
         .energy-fill { height: 100%; width: 0%; transition: width 0.2s; }
         .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; font-size: 1.1rem; box-shadow: 0 5px 0 #999; }
         .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #ffcc00); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #cc8800; }
 
-        /* 演出系 */
         .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
         .cutin.active { left: 0; }
         .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
         .abort-btn { display: block; margin: 20px auto; background: none; border: 2px solid #ccc; color: #999; border-radius: 10px; padding: 5px 15px; font-size: 0.8rem; cursor: pointer; }
         @keyframes shake-anim { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(3px, 0, 0); } }
         .shake { animation: shake-anim 0.4s both; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
     </style>
 </head>
 <body>
@@ -87,10 +70,10 @@
     <div class="how-to-play">
         <h5 class="font-weight-bold mb-3 text-center">⚔️ ルールと必殺技</h5>
         <ul class="list-unstyled mb-0">
-            <li>🔹 ナンプレでマスを埋めて<b>縦・横・ブロック</b>が揃うと相手を攻撃！</li>
-            <li>🔹 <b>AKIRA [量子超越]:</b> 指数関数的計算で正解を複数書き込む</li>
-            <li>🔹 <b>KOTO [デコヒーレンス]:</b> 観測により相手の盤面を崩壊させる</li>
-            <li>🔹 <b>LUX [天地創造]:</b> 既存マスを固定して問題を再生成し、2マス追加。相手は2マス減退。</li>
+            <li>🔹 ナンプレを解いて<b>縦・横・ブロック</b>を揃えて攻撃！</li>
+            <li>🔹 <b>AKIRA [量子超越]:</b> 指数関数的計算で自分の正解を複数書き込む</li>
+            <li>🔹 <b>KOTO [デコヒーレンス]:</b> 観測により相手の盤面の一部を崩壊させる</li>
+            <li>🔹 <b>LUX [天地創造]:</b> 自分の正解を2つ追加。相手の盤面を**別の正解**で再構築し、さらに2マス消去する。</li>
         </ul>
     </div>
 
@@ -151,10 +134,10 @@
 const units = {
     AKIRA: { img: 'akira.jpg', skill: '量子超越 (Supremacy)', color: '#00d2ff' },
     KOTO: { img: 'koto.jpg', skill: 'デコヒーレンスアタック', color: '#9d50bb' },
-    LUX: { img: 'lux.jpg', skill: 'ガウシアンアタック天地創造', color: '#ffcc00' }
+    LUX: { img: 'lux.jpg', skill: '天地創造 (Genesis)', color: '#ffcc00' }
 };
 
-let pUnit, cUnit, ansGrid = [], activeCell = null, gameActive = false, gridSize = 4, isBusy = false;
+let pUnit, cUnit, pAns = [], cAns = [], activeCell = null, gameActive = false, gridSize = 4, isBusy = false;
 let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 
 function playSE(file) { new Audio(file).play().catch(e=>{}); }
@@ -163,13 +146,15 @@ function playSelectAndStart(choice) { pUnit = choice; playSE('select.mp3'); init
 
 function initGame() {
     gameActive = true; pEn = 0; cEn = 0;
-    // リセット処理
     $('#p-skill-btn').removeClass('ready');
     $('#p-energy, #c-energy').css('width', '0%');
     
     cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
-    ansGrid = generateSol(gridSize);
     
+    // 正解を個別に生成
+    pAns = generateSol(gridSize);
+    cAns = JSON.parse(JSON.stringify(pAns)); // 初期状態は共通
+
     if(!bgmAudio) { bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.4; }
     bgmAudio.play().catch(e=>{});
 
@@ -203,7 +188,7 @@ function generateSol(size, fixedValues = []) {
         return false;
     };
     if(fill(0)) return grid;
-    return generateSol(size); // 失敗時は再試行
+    return generateSol(size); 
 }
 
 function setupBoards() {
@@ -220,11 +205,13 @@ function setupBoards() {
         }
         $(`#${id}-grid`).append(html);
     });
+    
     let hints = gridSize === 4 ? 4 : 28;
     for(let i=0; i<hints; i++){
         let r = Math.floor(Math.random()*gridSize), c = Math.floor(Math.random()*gridSize);
         if(!$(`#p_${r}_${c}`).hasClass('fixed')){
-            $(`#p_${r}_${c}, #c_${r}_${c}`).addClass('fixed').text(ansGrid[r][c]).attr('data-init', 'true');
+            // 初期ヒントは両者共通の正解(pAns)から引用
+            $(`#p_${r}_${c}, #c_${r}_${c}`).addClass('fixed').text(pAns[r][c]).attr('data-init', 'true');
         }
     }
 }
@@ -235,6 +222,7 @@ function useSkill(isCPU=false) {
     const u = isCPU ? cUnit : pUnit;
     const tid = isCPU ? 'c' : 'p';
     const opponent = isCPU ? 'p' : 'c';
+    const myAns = isCPU ? cAns : pAns;
 
     $('#cutin-img').css('background-image', `url(${units[u].img})`);
     $('#cutin-name').text(u); $('#cutin-skill').text(units[u].skill);
@@ -246,7 +234,7 @@ function useSkill(isCPU=false) {
             $(`#${tid}-grid .cell:not(.fixed)`).each(function(){
                 if(count < target) {
                     let r = this.id.split('_')[1], c = this.id.split('_')[2];
-                    $(this).addClass('fixed').text(ansGrid[r][c]).css('color', 'var(--p-color)');
+                    $(this).addClass('fixed').text(myAns[r][c]).css('color', 'var(--p-color)');
                     count++;
                 }
             });
@@ -264,53 +252,54 @@ function useSkill(isCPU=false) {
                 }
             }
         } else if(u === 'LUX') {
-            // --- 自分の処理：現状の固定マスを維持して問題を再生成 ＋ 2マス正解を埋める ---
-            const pFixed = [];
-            $(`#${tid}-grid .cell.fixed`).each(function(){
-                let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
-                pFixed.push({r, c, v: parseInt($(this).text())});
-            });
-            // 自分の正解テーブルを更新（現在の入力に矛盾しない新しい解を生成）
-            ansGrid = generateSol(gridSize, pFixed);
-            
-            // 自分のエフェクト
-            $(`#${tid}-grid .cell`).addClass('gaussian-wave');
-            setTimeout(() => { 
-                $(`#${tid}-grid .cell`).removeClass('gaussian-wave');
-                // 自分の空きマスからランダムに2箇所埋める
-                let empty = []; 
-                $(`#${tid}-grid .cell:not(.fixed)`).each(function(){ empty.push(this); });
-                for(let i=0; i<2; i++){
-                    if(empty.length > 0){
-                        let t = empty.splice(Math.floor(Math.random()*empty.length), 1)[0];
-                        let r = t.id.split('_')[1], c = t.id.split('_')[2];
-                        $(t).addClass('fixed').text(ansGrid[r][c]).css('color', 'var(--accent-gold)');
+            // --- 自分の処理：2マス追加 ---
+            let empty = []; 
+            $(`#${tid}-grid .cell:not(.fixed)`).each(function(){ empty.push(this); });
+            for(let i=0; i<2; i++){
+                if(empty.length > 0){
+                    let t = empty.splice(Math.floor(Math.random()*empty.length), 1)[0];
+                    let r = t.id.split('_')[1], c = t.id.split('_')[2];
+                    $(t).addClass('fixed').text(myAns[r][c]).css('color', 'var(--accent-gold)');
+                }
+            }
+            checkMatch(tid);
+
+            // --- 相手（opponent）への攻撃：天地創造（黄色い波とともに再構成） ---
+            // 相手の盤面全体に「黄色い波」のエフェクトを適用
+            $(`#${opponent}-grid .cell`).addClass('gaussian-wave');
+
+            setTimeout(() => {
+                // 1. 相手の盤面を完全に初期化
+                $(`#${opponent}-grid .cell`).removeClass('fixed').removeAttr('data-init').text('').css('color', '');
+
+                // 2. 相手用の「新しい正解世界」を生成し、データを上書き
+                const newOpAns = generateSol(gridSize); 
+                if(isCPU) pAns = newOpAns; else cAns = newOpAns;
+
+                // 3. 相手の盤面に「新しい正解」に基づいた初期配置を行う（ヒント-2のペナルティ）
+                let hints = gridSize === 4 ? 4 : 28;
+                let targetHints = Math.max(2, hints - 2); 
+                let placed = 0;
+                while(placed < targetHints) {
+                    let r = Math.floor(Math.random() * gridSize);
+                    let c = Math.floor(Math.random() * gridSize);
+                    let targetCell = $(`#${opponent}_${r}_${c}`);
+                    if(!targetCell.hasClass('fixed')) {
+                        targetCell.addClass('fixed').text(newOpAns[r][c]).attr('data-init', 'true');
+                        placed++;
                     }
                 }
-            }, 800);
 
-            // --- 相手の処理：盤面を完全に作り直し（再生成） ＋ 2マス消去 ---
-            // 相手の「初期ヒント(data-init)」だけを残して他をクリアし、新しい問題にする
-            const oFixed = [];
-            $(`#${opponent}-grid .cell[data-init]`).each(function(){
-                let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
-                oFixed.push({r, c, v: parseInt($(this).text())});
-            });
-            // 相手側の正解テーブルも「天地創造」で書き換える
-            const newOpponentAns = generateSol(gridSize, oFixed);
-            
-            // 相手の盤面からユーザー/CPUが入力したマスを消し、正解も入れ替える
-            // (注: ansGridは共通変数なので、相手の判定用に一時的に保持するか、
-            //  本来はプレイヤーごとにansGridを持つ設計にすべきですが、
-            //  このコード構造では「現在のansGrid」が共通のため、全体の問題がLUX基準で再定義されます)
-            
-            $(`#${opponent}-grid .cell:not([data-init])`).each(function(){
-                $(this).removeClass('fixed').text('').css('color', '');
-            });
-            
-            // 相手にダメージ演出
-            $(`#${opponent}-grid`).addClass('shake');
-            setTimeout(()=> $(`#${opponent}-grid`).removeClass('shake'), 400);
+                // エフェクト終了と衝撃
+                $(`#${opponent}-grid .cell`).removeClass('gaussian-wave');
+                $(`#${opponent}-grid`).addClass('shake');
+                setTimeout(()=> $(`#${opponent}-grid`).removeClass('shake'), 400);
+                
+                // 再構成されたのでマッチング判定をリセット
+                $(`#${opponent}-grid`).data('c', 0); 
+                checkMatch(opponent);
+
+            }, 800); // 演出の溜め時間
         }
 
         if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
@@ -329,7 +318,9 @@ function openSelector(el) {
 function selectNumber(num) {
     if(!activeCell) return; $('#cross-selector, #selector-9x9').fadeOut(100);
     let r = activeCell.id.split('_')[1], c = activeCell.id.split('_')[2];
-    if(num != ansGrid[r][c]) {
+    let targetAns = activeCell.id.startsWith('p') ? pAns : cAns;
+
+    if(num != targetAns[r][c]) {
         $(activeCell).addClass('wrong'); pEn = Math.max(0, pEn - 10); playSE('wrong.mp3');
         setTimeout(()=>$(activeCell).removeClass('wrong'), 500);
     } else {
@@ -342,16 +333,18 @@ function selectNumber(num) {
 
 function checkMatch(pre) {
     let m = 0; const sub = Math.sqrt(gridSize);
+    let targetAns = pre === 'p' ? pAns : cAns;
+
     for(let i=0; i<gridSize; i++){
         let r=true, c=true;
         for(let j=0; j<gridSize; j++){
-            if($(`#${pre}_${i}_${j}`).text() != ansGrid[i][j]) r=false;
-            if($(`#${pre}_${j}_${i}`).text() != ansGrid[j][i]) c=false;
+            if($(`#${pre}_${i}_${j}`).text() != targetAns[i][j]) r=false;
+            if($(`#${pre}_${j}_${i}`).text() != targetAns[j][i]) c=false;
         }
         if(r) m++; if(c) m++;
     }
     for(let br=0; br<gridSize; br+=sub) for(let bc=0; bc<gridSize; bc+=sub){
-        let b=true; for(let r=0; r<sub; r++) for(let c=0; c<sub; c++) if($(`#${pre}_${br+r}_${bc+c}`).text() != ansGrid[br+r][bc+c]) b=false;
+        let b=true; for(let r=0; r<sub; r++) for(let c=0; c<sub; c++) if($(`#${pre}_${br+r}_${bc+c}`).text() != targetAns[br+r][bc+c]) b=false;
         if(b) m++;
     }
     if(m > ($(`#${pre}-grid`).data('c')||0)) {
@@ -377,7 +370,7 @@ function gameLoop() {
         if(e.length>0){
             let t = e[Math.floor(Math.random()*e.length)];
             let r = t.id.split('_')[1], c = t.id.split('_')[2];
-            $(t).addClass('fixed').text(ansGrid[r][c]); checkMatch('c');
+            $(t).addClass('fixed').text(cAns[r][c]); checkMatch('c');
         }
     }
     setTimeout(gameLoop, 250);
@@ -385,7 +378,15 @@ function gameLoop() {
 
 function checkWin() {
     if(!gameActive) return;
-    const f = (id) => { let all=true; $(`#${id}-grid .cell`).each(function(){ let p=this.id.split('_'); if($(this).text() != ansGrid[p[1]][p[2]]) all=false; }); return all; };
+    const f = (id) => { 
+        let all=true; 
+        let targetAns = id === 'p' ? pAns : cAns;
+        $(`#${id}-grid .cell`).each(function(){ 
+            let p=this.id.split('_'); 
+            if($(this).text() != targetAns[p[1]][p[2]]) all=false; 
+        }); 
+        return all; 
+    };
     if(f('p')) showResult(true); else if(f('c')) showResult(false);
 }
 
