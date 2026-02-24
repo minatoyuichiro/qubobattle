@@ -10,29 +10,25 @@
         :root { --p-color: #00d2ff; --c-color: #ff4757; --accent-gold: #ffcc00; }
         body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; touch-action: manipulation; }
         
-        /* タイトル・選択画面 */
         .overlay-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
         .how-to-play { max-width: 500px; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 2px dashed #ccc; font-size: 0.85rem; }
-        .rule-badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; font-weight: bold; margin-right: 5px; }
         
         .char-card-container { display: flex; gap: 15px; margin-top: 10px; padding-bottom: 50px; }
         .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
         .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
         .char-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; background: #eee; pointer-events: none; }
 
-        /* リザルト画面 */
         #result-screen { display: none; background: rgba(255,255,255,0.98); z-index: 8000; align-items: center; justify-content: center; }
         .result-box { text-align: center; padding: 50px; border-radius: 40px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); background: white; border: 8px solid #f0f0f0; max-width: 90%; }
 
-        /* バトルステージ（以前のレイアウトを維持） */
         .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
         .board-wrapper { flex: 1; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
         
         .portrait { width: 70px; height: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-size: cover; background-position: center; margin-bottom: 10px; }
         .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; border: 2px solid #eee; }
-        .energy-fill { height: 100%; width: 0%; transition: width 0.2s cubic-bezier(0, 1, 0.5, 1); }
+        .energy-fill { height: 100%; width: 0%; transition: width 0.2s; }
         .energy-penalty { animation: penalty-flash 0.5s; background: #333 !important; }
-        @keyframes penalty-flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes penalty-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; table-layout: fixed; }
         .sudoku-grid td { border: 1px solid #ddd; width: 25%; padding: 0; position: relative; }
@@ -43,7 +39,6 @@
         .fixed { background: #f0f0f0; color: #555; }
         .wrong { color: #ff4757; background: rgba(255, 71, 87, 0.2); animation: shake-anim 0.3s; }
 
-        /* 十字セレクター */
         #cross-selector { position: absolute; display: none; width: 140px; height: 140px; z-index: 6000; pointer-events: none; }
         .cross-btn { 
             position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; 
@@ -57,7 +52,7 @@
         .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 0 #999; font-size: 1.2rem; }
         .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #3a7bd5); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #0076bb; }
 
-        .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; opacity: 0; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
+        .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
         .cutin.active { left: 0; opacity: 1; }
         .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3.5rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
         @keyframes shake-anim { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
@@ -72,13 +67,12 @@
     <div class="how-to-play">
         <h5 class="font-weight-bold mb-3 text-center">⚔️ 遊び方とルール</h5>
         <ul class="list-unstyled mb-0">
-            <li>🔹 マスをクリックし、現れるボタンで入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
-            <li>🔹 列が揃うと攻撃。ミスするとゲージが0になります！</li>
-            <li class="mt-2 small">⚡ <b>AKIRA:</b> ヒントを2つ生成 / 🔮 <b>KOTO:</b> 3連続攻撃</li>
-            <li class="small">☀️ <b>LUX:</b> 空欄の半分を即座に埋める（チャージ低速）</li>
+            <li>🔹 マスをクリックし、十字キーで入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
+            <li>🔹 <b>縦・横・2x2ブロック</b>のいずれかが揃うと相手を攻撃！</li>
+            <li>🔹 ミスすると溜まったゲージが0になります！</li>
+            <li class="mt-2 small">⚡ <b>AKIRA:</b> ヒント2つ / 🔮 <b>KOTO:</b> 3回攻撃 / ☀️ <b>LUX:</b> 空欄半分を埋める</li>
         </ul>
     </div>
-    <p class="text-muted font-weight-bold">ユニットを選択して開始</p>
     <div class="char-card-container">
         <div class="char-card" onclick="playSelectAndStart('AKIRA')"><img src="akira.jpg"><h5>AKIRA</h5></div>
         <div class="char-card" onclick="playSelectAndStart('KOTO')"><img src="koto.jpg"><h5>KOTO</h5></div>
@@ -110,7 +104,7 @@
 </div>
 
 <div class="battle-stage">
-    <div class="board-wrapper" id="p-wrap">
+    <div class="board-wrapper">
         <div class="portrait" id="p-portrait"></div>
         <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
         <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
@@ -118,8 +112,7 @@
         <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
         <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
     </div>
-
-    <div class="board-wrapper" id="c-wrap">
+    <div class="board-wrapper">
         <div class="portrait" id="c-portrait"></div>
         <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
         <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
@@ -142,9 +135,7 @@ let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 function playSE(file) { new Audio(file).play().catch(e=>{}); }
 
 function playSelectAndStart(choice) {
-    pUnit = choice;
-    playSE('select.mp3');
-    setTimeout(() => initGame(), 200);
+    pUnit = choice; playSE('select.mp3'); setTimeout(() => initGame(), 200);
 }
 
 function initGame() {
@@ -152,16 +143,11 @@ function initGame() {
     cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
     ansGrid = generateSol();
     pEn = 0; cEn = 0;
-    
-    // UI反映
     $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
     $('#c-portrait').css('background-image', `url(${units[cUnit].img})`);
-    $('#p-name-label').text(pUnit);
-    $('#c-name-label').text(cUnit);
-    
+    $('#p-name-label').text(pUnit); $('#c-name-label').text(cUnit);
     if(!bgmAudio) { bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.4; }
     bgmAudio.play().catch(e=>{});
-
     $('#selector-screen, #result-screen').fadeOut(300);
     $('#p-grid, #c-grid').empty().data('c', 0);
     setupBoards();
@@ -198,7 +184,6 @@ function setupBoards() {
         }
         $(`#${id}-grid`).append(html);
     });
-    // 連勝するほど初期ヒントが減る
     let hintCount = Math.max(1, 4 - Math.floor(winStreak / 2));
     for(let i=0; i<hintCount; i++){
         let r = Math.floor(Math.random()*4), c = Math.floor(Math.random()*4);
@@ -222,7 +207,6 @@ function selectNumber(num) {
     $('#cross-selector').fadeOut(100);
     let idParts = activeCell.id.split('_');
     let r = parseInt(idParts[1]), c = parseInt(idParts[2]);
-    
     if(num !== ansGrid[r][c]) {
         $(activeCell).addClass('wrong'); pEn = 0; $('#p-energy').addClass('energy-penalty');
         setTimeout(() => { $(activeCell).removeClass('wrong'); $('#p-energy').removeClass('energy-penalty'); }, 500);
@@ -234,17 +218,28 @@ function selectNumber(num) {
 }
 
 function checkMatch(pre) {
-    let count = 0;
+    let currentMatchCount = 0;
+    // 縦横チェック
     for(let i=0; i<4; i++){
-        let rM=true, cM=true;
+        let rowM=true, colM=true;
         for(let j=0; j<4; j++){
-            if($(`#${pre}_${i}_${j}`).find('.cell-value').text() != ansGrid[i][j]) rM=false;
-            if($(`#${pre}_${j}_${i}`).find('.cell-value').text() != ansGrid[j][i]) cM=false;
+            if($(`#${pre}_${i}_${j}`).find('.cell-value').text() != ansGrid[i][j]) rowM=false;
+            if($(`#${pre}_${j}_${i}`).find('.cell-value').text() != ansGrid[j][i]) colM=false;
         }
-        if(rM) count++; if(cM) count++;
+        if(rowM) currentMatchCount++; if(colM) currentMatchCount++;
     }
-    if(count > ($(`#${pre}-grid`).data('c')||0)) {
-        $(`#${pre}-grid`).data('c', count);
+    // 2x2ブロックチェック
+    const blocks = [[0,0],[0,2],[2,0],[2,2]];
+    blocks.forEach(b => {
+        let blockM = true;
+        for(let r=0; r<2; r++) for(let c=0; c<2; c++) {
+            if($(`#${pre}_${b[0]+r}_${b[1]+c}`).find('.cell-value').text() != ansGrid[b[0]+r][b[1]+c]) blockM=false;
+        }
+        if(blockM) currentMatchCount++;
+    });
+
+    if(currentMatchCount > ($(`#${pre}-grid`).data('c')||0)) {
+        $(`#${pre}-grid`).data('c', currentMatchCount);
         playSE('attack.m4a');
         $(`#${pre}-attack-pop`).show().fadeOut(1000);
         let target = pre==='p'?'c':'p';
@@ -261,29 +256,22 @@ function checkMatch(pre) {
 
 function useSkill(isCPU=false) {
     if(!gameActive || (!isCPU && (pEn < 100 || isBusy))) return;
-    isBusy = true;
-    const u = isCPU ? cUnit : pUnit;
+    isBusy = true; const u = isCPU ? cUnit : pUnit;
     $('#cutin-img').css('background-image', `url(${units[u].img})`);
     $('#cutin-name').text(u); $('#cutin-skill').text(units[u].skill);
     $('#cutin-bar').addClass('active'); playSE('ultimate.m4a');
-    
     setTimeout(() => {
         let tid = isCPU?'c':'p';
         if(u==='AKIRA'){
-            let f=0;
-            for(let r=0; r<4; r++) for(let c=0; c<4; c++)
+            let f=0; for(let r=0; r<4; r++) for(let c=0; c<4; c++)
                 if(!$(`#${tid}_${r}_${c}`).hasClass('fixed') && f<2){ $(`#${tid}_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]); f++; }
         } else if(u==='KOTO'){
             for(let i=0; i<3; i++) setTimeout(()=>checkMatch(tid), i*200);
         } else if(u==='LUX'){
-            let empty = [];
-            for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
-            let fillCount = Math.ceil(empty.length/2);
-            for(let i=0; i<fillCount; i++){
-                if(empty.length===0) break;
-                let cell = empty.splice(Math.floor(Math.random()*empty.length),1)[0];
-                $(`#${tid}_${cell.r}_${cell.c}`).addClass('fixed').find('.cell-value').text(ansGrid[cell.r][cell.c]);
-            }
+            let empty = []; for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
+            let fc = Math.ceil(empty.length/2);
+            for(let i=0; i<fc; i++){ if(empty.length===0) break; let cell = empty.splice(Math.floor(Math.random()*empty.length),1)[0];
+                $(`#${tid}_${cell.r}_${cell.c}`).addClass('fixed').find('.cell-value').text(ansGrid[cell.r][cell.c]); }
         }
         if(isCPU) cEn=0; else { pEn=0; $('#p-skill-btn').removeClass('ready'); }
         $('#cutin-bar').removeClass('active'); isBusy=false; checkWin();
@@ -302,8 +290,7 @@ function gameLoop() {
     }
     let cpuThinkingChance = 0.96 - Math.min(0.04, winStreak * 0.01);
     if(Math.random() > cpuThinkingChance && !isBusy){
-        let empty = [];
-        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
+        let empty = []; for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
         if(empty.length>0){ let t = empty[Math.floor(Math.random()*empty.length)]; $(`#c_${t.r}_${t.c}`).addClass('fixed').find('.cell-value').text(ansGrid[t.r][t.c]); checkMatch('c'); }
     }
     setTimeout(gameLoop, 250);
@@ -315,20 +302,16 @@ function checkWin() {
         for(let r=0; r<4; r++) for(let c=0; c<4; c++) if($(`#${pre}_${r}_${c}`).find('.cell-value').text() != ansGrid[r][c]) return false;
         return true;
     };
-    if(full('p')) showResult(true);
-    else if(full('c')) showResult(false);
+    if(full('p')) showResult(true); else if(full('c')) showResult(false);
 }
 
 function showResult(isWin) {
-    gameActive = false;
-    if(isWin) winStreak++; else winStreak = 0;
+    gameActive = false; if(isWin) winStreak++; else winStreak = 0;
     $('#result-title').text(isWin ? "VICTORY!" : "DEFEAT...");
     $('#result-title').css('color', isWin ? 'var(--p-color)' : 'var(--c-color)');
     $('#result-streak-info').text(isWin ? `Current Win Streak: ${winStreak}` : "連勝が途絶えました...");
     $('#result-screen').css('display', 'flex').hide().fadeIn(500);
-    
-    if(winStreak > 0) $('#win-streak-badge').text(`${winStreak} Win Streak`).show();
-    else $('#win-streak-badge').hide();
+    if(winStreak > 0) $('#win-streak-badge').text(`${winStreak} Win Streak`).show(); else $('#win-streak-badge').hide();
 }
 
 function rematch() { $('#result-screen').fadeOut(300, () => initGame()); }
