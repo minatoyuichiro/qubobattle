@@ -10,50 +10,57 @@
         :root { --p-color: #00d2ff; --c-color: #ff4757; --accent-gold: #ffcc00; }
         body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; touch-action: manipulation; }
         
-        /* 以前のスタイルを維持 */
+        /* タイトル・説明画面 */
         .overlay-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
         .how-to-play { max-width: 500px; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 2px dashed #ccc; font-size: 0.85rem; }
+        
+        .mode-select { display: flex; gap: 10px; margin-bottom: 20px; }
+        .mode-btn { padding: 10px 20px; border: 2px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .mode-btn.active { border-color: var(--p-color); background: var(--p-color); color: white; }
+
         .char-card-container { display: flex; gap: 15px; margin-top: 10px; padding-bottom: 50px; }
         .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
         .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
         .char-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; background: #eee; pointer-events: none; }
 
-        #result-screen { display: none; background: rgba(255,255,255,0.98); z-index: 8000; align-items: center; justify-content: center; }
-        .result-box { text-align: center; padding: 50px; border-radius: 40px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); background: white; border: 8px solid #f0f0f0; max-width: 90%; }
-
+        /* バトル画面 */
         .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; }
-        .board-wrapper { flex: 1; min-width: 300px; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
-        
-        .portrait { width: 70px; height: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-size: cover; background-position: center; margin-bottom: 10px; }
-        .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; border: 2px solid #eee; }
-        .energy-fill { height: 100%; width: 0%; transition: width 0.2s; }
+        .board-wrapper { flex: 1; min-width: 300px; max-width: 450px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
         
         .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .sudoku-grid td { border: 1px solid #ddd; width: 25%; padding: 0; position: relative; }
-        .bold-right { border-right: 4px solid #333 !important; }
-        .bold-bottom { border-bottom: 4px solid #333 !important; }
-        .cell { width: 100%; aspect-ratio: 1/1; position: relative; cursor: pointer; }
-        .cell-value { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; }
+        .sudoku-grid td { border: 1px solid #ddd; padding: 0; position: relative; }
+        .grid-4 .bold-right, .grid-9 .bold-right { border-right: 4px solid #333 !important; }
+        .grid-4 .bold-bottom, .grid-9 .bold-bottom { border-bottom: 4px solid #333 !important; }
+
+        .cell { width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .grid-4 .cell { font-size: 2rem; }
+        .grid-9 .cell { font-size: 1.1rem; }
         .fixed { background: #f0f0f0; color: #555; }
         .wrong { color: #ff4757; background: rgba(255, 71, 87, 0.2); animation: shake-anim 0.3s; }
 
-        /* 十字セレクター */
+        /* ガウシアン演出 */
+        .gaussian-wave { animation: gaussian-pulse 1s ease-out; background: rgba(255, 204, 0, 0.4) !important; z-index: 10; }
+        @keyframes gaussian-pulse { 0% { filter: blur(0px); } 50% { filter: blur(10px); transform: scale(1.1); } 100% { filter: blur(0px); } }
+
+        /* セレクター */
+        #selector-9x9 { position: fixed; display: none; background: white; border: 3px solid #333; border-radius: 15px; z-index: 9000; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .num-btn { width: 44px; height: 44px; border: 2px solid #333; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
         #cross-selector { position: absolute; display: none; width: 140px; height: 140px; z-index: 6000; pointer-events: none; }
-        .cross-btn { position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; background: white; color: #333; font-weight: 900; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 #333; }
-        .cross-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #333; background: var(--p-color); color: white; }
-        .btn-up { top: 0; left: 48px; } .btn-right { top: 48px; right: 0; } .btn-down { bottom: 0; left: 48px; } .btn-left { top: 48px; left: 0; }
+        .cross-btn { position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; background: white; color: #333; font-weight: 900; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; box-shadow: 0 4px 0 #333; }
 
-        .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 0 #999; font-size: 1.2rem; }
-        .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #3a7bd5); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #0076bb; }
+        /* ゲージ・ボタン */
+        .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; }
+        .energy-fill { height: 100%; width: 0%; transition: width 0.2s; }
+        .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; font-size: 1.1rem; box-shadow: 0 5px 0 #999; }
+        .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #ffcc00); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #cc8800; }
 
-        /* 追加：対戦中タイトル戻るボタン */
-        .abort-btn { display: block; margin: 20px auto; background: none; border: 2px solid #ccc; color: #999; border-radius: 10px; padding: 5px 15px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .abort-btn:hover { background: #eee; color: #666; border-color: #999; }
-
+        /* 演出系 */
         .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
-        .cutin.active { left: 0; opacity: 1; }
-        .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3.5rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
-        @keyframes shake-anim { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+        .cutin.active { left: 0; }
+        .attack-pop { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--accent-gold); font-size: 3rem; font-weight: 900; -webkit-text-stroke: 2px black; pointer-events: none; z-index: 100; display: none; }
+        .abort-btn { display: block; margin: 20px auto; background: none; border: 2px solid #ccc; color: #999; border-radius: 10px; padding: 5px 15px; font-size: 0.8rem; cursor: pointer; }
+        @keyframes shake-anim { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(3px, 0, 0); } }
         .shake { animation: shake-anim 0.4s both; }
     </style>
 </head>
@@ -62,14 +69,22 @@
 <div id="selector-screen" class="overlay-screen">
     <h1 class="font-weight-bold mb-3">QUANTUM BATTLE</h1>
     <div id="win-streak-badge" class="badge badge-primary mb-3" style="display:none; font-size:1.2rem; padding:10px 20px; border-radius:20px;">0 Win Streak</div>
+    
     <div class="how-to-play">
-        <h5 class="font-weight-bold mb-3 text-center">⚔️ 遊び方とルール</h5>
+        <h5 class="font-weight-bold mb-3 text-center">⚔️ ルールと必殺技</h5>
         <ul class="list-unstyled mb-0">
-            <li>🔹 マスをクリックし、十字で入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
-            <li>🔹 <b>縦・横・2x2ブロック</b>のいずれかが揃うと相手を攻撃！</li>
-            <li class="mt-2 small">⚡ <b>AKIRA:</b> ヒント2つ / 🔮 <b>KOTO:</b> 3回攻撃 / ☀️ <b>LUX:</b> 空欄半分を埋める</li>
+            <li>🔹 ナンプレでマスを埋めて<b>縦・横・ブロック</b>が揃うと相手を攻撃！</li>
+            <li>🔹 <b>AKIRA [量子超越]:</b> 指数関数的計算で正解を複数書き込む</li>
+            <li>🔹 <b>KOTO [デコヒーレンス]:</b> 観測により相手の盤面を崩壊させる</li>
+            <li>🔹 <b>LUX [天地創造]:</b> ガウス分布の波動で宇宙(盤面)を再生成する</li>
         </ul>
     </div>
+
+    <div class="mode-select">
+        <div class="mode-btn active" onclick="setMode(4, this)">4 x 4 Mode</div>
+        <div class="mode-btn" onclick="setMode(9, this)">9 x 9 Mode</div>
+    </div>
+
     <div class="char-card-container">
         <div class="char-card" onclick="playSelectAndStart('AKIRA')"><img src="akira.jpg"><h5>AKIRA</h5></div>
         <div class="char-card" onclick="playSelectAndStart('KOTO')"><img src="koto.jpg"><h5>KOTO</h5></div>
@@ -77,100 +92,106 @@
     </div>
 </div>
 
-<div id="result-screen" class="overlay-screen">
-    <div class="result-box">
-        <h1 id="result-title" class="display-3 font-weight-bold mb-4"></h1>
-        <div class="mb-4">
-            <button class="btn btn-lg btn-primary px-5 py-3 mb-3 rounded-pill font-weight-bold" onclick="rematch()">REMATCH (再戦)</button><br>
-            <button class="btn btn-outline-secondary px-5 rounded-pill" onclick="toTitle()">BACK TO TITLE</button>
-        </div>
-        <p id="result-streak-info" class="h5 text-muted"></p>
+<div id="result-screen" class="overlay-screen" style="display:none; justify-content:center;">
+    <div class="text-center p-5 bg-white border rounded shadow">
+        <h1 id="result-title" class="display-3 font-weight-bold"></h1>
+        <p id="result-streak-info" class="h5 text-muted mb-4"></p>
+        <button class="btn btn-lg btn-primary px-5 rounded-pill" onclick="rematch()">REMATCH</button><br>
+        <button class="btn btn-link mt-2" onclick="toTitle()">TITLE</button>
     </div>
 </div>
 
 <div id="cross-selector">
-    <div class="cross-btn btn-up" onclick="selectNumber(1)">1</div>
-    <div class="cross-btn btn-right" onclick="selectNumber(2)">2</div>
-    <div class="cross-btn btn-down" onclick="selectNumber(3)">3</div>
-    <div class="cross-btn btn-left" onclick="selectNumber(4)">4</div>
+    <div class="cross-btn" style="top:0; left:48px;" onclick="selectNumber(1)">1</div>
+    <div class="cross-btn" style="top:48px; right:0;" onclick="selectNumber(2)">2</div>
+    <div class="cross-btn" style="bottom:0; left:48px;" onclick="selectNumber(3)">3</div>
+    <div class="cross-btn" style="top:48px; left:0;" onclick="selectNumber(4)">4</div>
 </div>
+<div id="selector-9x9"></div>
 
 <div id="cutin-bar" class="cutin">
     <div id="cutin-img" style="width:140px; height:140px; background-size:cover; border-right:5px solid var(--accent-gold);"></div>
-    <div class="ml-4"><h2 id="cutin-name" class="font-weight-bold mb-0"></h2><h4 id="cutin-skill" class="text-warning small"></h4></div>
+    <div class="ml-4"><h2 id="cutin-name" class="font-weight-bold mb-0"></h2><h4 id="cutin-skill" class="text-warning"></h4></div>
 </div>
 
-<div>
-    <div class="battle-stage">
-        <div class="board-wrapper">
-            <div class="portrait" id="p-portrait"></div>
-            <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
-            <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
-            <table id="p-grid" class="sudoku-grid"></table>
-            <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
-            <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
-        </div>
-        <div class="board-wrapper">
-            <div class="portrait" id="c-portrait"></div>
-            <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
-            <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
-            <table id="c-grid" class="sudoku-grid"></table>
-            <button class="ultimate-btn" disabled>CPU THINKING...</button>
-            <div id="c-attack-pop" class="attack-pop">ATTACK!</div>
-        </div>
+<div class="battle-stage">
+    <div class="board-wrapper">
+        <div class="portrait" id="p-portrait" style="width:70px; height:70px; border-radius:50%; border:3px solid white; background-size:cover; margin-bottom:10px;"></div>
+        <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
+        <table id="p-grid" class="sudoku-grid"></table>
+        <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
+        <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
     </div>
-    <button class="abort-btn" onclick="confirmToTitle()">QUIT TO TITLE</button>
+    <div class="board-wrapper">
+        <div class="portrait" id="c-portrait" style="width:70px; height:70px; border-radius:50%; border:3px solid white; background-size:cover; margin-bottom:10px;"></div>
+        <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
+        <table id="c-grid" class="sudoku-grid"></table>
+        <button class="ultimate-btn" disabled>CPU THINKING</button>
+        <div id="c-attack-pop" class="attack-pop">ATTACK!</div>
+    </div>
 </div>
+<button class="abort-btn" onclick="confirmToTitle()">QUIT TO TITLE</button>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
-// (これまでのスクリプトを継承)
 const units = {
-    AKIRA: { img: 'akira.jpg', skill: '電子固定 [Fixed Obs.]', color: '#00d2ff' },
-    KOTO: { img: 'koto.jpg', skill: '事象封印 [Event Seal]', color: '#9d50bb' },
-    LUX: { img: 'lux.jpg', skill: '光子透過 [Photon Leap]', color: '#ffcc00' }
+    AKIRA: { img: 'akira.jpg', skill: '量子超越 (Supremacy)', color: '#00d2ff' },
+    KOTO: { img: 'koto.jpg', skill: 'デコヒーレンスアタック', color: '#9d50bb' },
+    LUX: { img: 'lux.jpg', skill: 'ガウシアンアタック天地創造', color: '#ffcc00' }
 };
-let pUnit, cUnit, ansGrid = [], isBusy = false, activeCell = null, gameActive = false;
+
+let pUnit, cUnit, ansGrid = [], activeCell = null, gameActive = false, gridSize = 4, isBusy = false;
 let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 
+// 音声再生
 function playSE(file) { new Audio(file).play().catch(e=>{}); }
-function playSelectAndStart(choice) { pUnit = choice; playSE('select.mp3'); setTimeout(() => initGame(), 200); }
+
+function setMode(size, el) { gridSize = size; $('.mode-btn').removeClass('active'); $(el).addClass('active'); }
+function playSelectAndStart(choice) { pUnit = choice; playSE('select.mp3'); initGame(); }
 
 function initGame() {
-    gameActive = true;
+    gameActive = true; 
+    pEn = 0; 
+    cEn = 0;
+    
+    // --- 追加：ボタンとプログレスバーの状態リセット ---
+    $('#p-skill-btn').removeClass('ready'); 
+    $('#p-energy').css('width', '0%');
+    $('#c-energy').css('width', '0%');
+    // ------------------------------------------
+
     cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
-    ansGrid = generateSol();
-    pEn = 0; cEn = 0;
+    ansGrid = generateSol(gridSize);
+    
+    if(!bgmAudio) { 
+        bgmAudio = new Audio('bgm.mp3'); 
+        bgmAudio.loop = true; 
+        bgmAudio.volume = 0.4; 
+    }
+    bgmAudio.play().catch(e=>{});
+
     $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
     $('#c-portrait').css('background-image', `url(${units[cUnit].img})`);
-    $('#p-name-label').text(pUnit); $('#c-name-label').text(cUnit);
-    if(!bgmAudio) { bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.4; }
-    bgmAudio.play().catch(e=>{});
     $('#selector-screen, #result-screen').fadeOut(300);
-    $('#p-grid, #c-grid').empty().data('c', 0);
+    $('#p-grid, #c-grid').empty().data('c', 0).removeClass('grid-4 grid-9').addClass('grid-'+gridSize);
+    
     setupBoards();
+    if(gridSize === 9) setup9x9Selector();
     gameLoop();
 }
 
-// 追加：対戦中断の確認
-function confirmToTitle() {
-    if(confirm("対戦を中断してタイトルに戻りますか？\n(連勝記録はリセットされません)")) {
-        gameActive = false;
-        toTitle();
-    }
-}
-
-function generateSol() {
-    const grid = Array.from({length:4}, () => Array(4).fill(0));
+function generateSol(size) {
+    const grid = Array.from({length:size}, () => Array(size).fill(0));
+    const sub = Math.sqrt(size);
     const check = (r, c, v) => {
-        for(let i=0; i<4; i++) if(grid[r][i] === v || grid[i][c] === v) return false;
-        let br = Math.floor(r/2)*2, bc = Math.floor(c/2)*2;
-        for(let i=0; i<2; i++) for(let j=0; j<2; j++) if(grid[br+i][bc+j] === v) return false;
+        for(let i=0; i<size; i++) if(grid[r][i] === v || grid[i][c] === v) return false;
+        let br = Math.floor(r/sub)*sub, bc = Math.floor(c/sub)*sub;
+        for(let i=0; i<sub; i++) for(let j=0; j<sub; j++) if(grid[br+i][bc+j] === v) return false;
         return true;
     };
     const fill = (pos) => {
-        if(pos === 16) return true;
-        let r = Math.floor(pos/4), c = pos%4, nums = [1,2,3,4].sort(()=>Math.random()-0.5);
+        if(pos === size*size) return true;
+        let r = Math.floor(pos/size), c = pos%size, nums = Array.from({length:size},(_,i)=>i+1).sort(()=>Math.random()-0.5);
         for(let v of nums) if(check(r,c,v)){ grid[r][c]=v; if(fill(pos+1)) return true; grid[r][c]=0; }
         return false;
     };
@@ -178,156 +199,166 @@ function generateSol() {
 }
 
 function setupBoards() {
+    const sub = Math.sqrt(gridSize);
     ['p', 'c'].forEach(id => {
         let html = '';
-        for(let r=0; r<4; r++){
+        for(let r=0; r<gridSize; r++){
             html += '<tr>';
-            for(let c=0; c<4; c++){
-                let cls = `${r===1?'bold-bottom':''} ${c===1?'bold-right':''}`;
-                html += `<td class="${cls}"><div class="cell" id="${id}_${r}_${c}" onclick="openCrossSelector(this)"><div class="cell-value"></div></div></td>`;
+            for(let c=0; c<gridSize; c++){
+                let cls = `${(r+1)%sub===0 && r!==gridSize-1?'bold-bottom':''} ${(c+1)%sub===0 && c!==gridSize-1?'bold-right':''}`;
+                html += `<td class="${cls}"><div class="cell" id="${id}_${r}_${c}" onclick="openSelector(this)"></div></td>`;
             }
             html += '</tr>';
         }
         $(`#${id}-grid`).append(html);
     });
-    let hintCount = Math.max(1, 4 - Math.floor(winStreak / 2));
-    for(let i=0; i<hintCount; i++){
-        let r = Math.floor(Math.random()*4), c = Math.floor(Math.random()*4);
+    let hints = gridSize === 4 ? 4 : 28;
+    for(let i=0; i<hints; i++){
+        let r = Math.floor(Math.random()*gridSize), c = Math.floor(Math.random()*gridSize);
         if(!$(`#p_${r}_${c}`).hasClass('fixed')){
-            $(`#p_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]);
-            $(`#c_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]);
+            $(`#p_${r}_${c}, #c_${r}_${c}`).addClass('fixed').text(ansGrid[r][c]).attr('data-init', 'true');
         }
-    }
-}
-
-function openCrossSelector(el) {
-    if(!gameActive || $(el).hasClass('fixed') || el.id.startsWith('c')) return;
-    activeCell = el;
-    let pos = $(el).offset();
-    let cellW = $(el).width();
-    $('#cross-selector').css({ top: pos.top + cellW/2 - 70, left: pos.left + cellW/2 - 70 }).fadeIn(100);
-}
-
-function selectNumber(num) {
-    if(!activeCell) return;
-    $('#cross-selector').fadeOut(100);
-    let idParts = activeCell.id.split('_');
-    let r = parseInt(idParts[1]), c = parseInt(idParts[2]);
-    if(num !== ansGrid[r][c]) {
-        $(activeCell).addClass('wrong'); pEn = 0; $('#p-energy').addClass('energy-penalty');
-        setTimeout(() => { $(activeCell).removeClass('wrong'); $('#p-energy').removeClass('energy-penalty'); }, 500);
-    } else {
-        $(activeCell).removeClass('wrong').addClass('fixed'); $(activeCell).find('.cell-value').text(num);
-        pEn = Math.min(100, pEn + 8); checkMatch('p');
-    }
-    activeCell = null; checkWin();
-}
-
-function checkMatch(pre) {
-    let currentMatchCount = 0;
-    for(let i=0; i<4; i++){
-        let rowM=true, colM=true;
-        for(let j=0; j<4; j++){
-            if($(`#${pre}_${i}_${j}`).find('.cell-value').text() != ansGrid[i][j]) rowM=false;
-            if($(`#${pre}_${j}_${i}`).find('.cell-value').text() != ansGrid[j][i]) colM=false;
-        }
-        if(rowM) currentMatchCount++; if(colM) currentMatchCount++;
-    }
-    const blocks = [[0,0],[0,2],[2,0],[2,2]];
-    blocks.forEach(b => {
-        let blockM = true;
-        for(let r=0; r<2; r++) for(let c=0; c<2; c++) {
-            if($(`#${pre}_${b[0]+r}_${b[1]+c}`).find('.cell-value').text() != ansGrid[b[0]+r][b[1]+c]) blockM=false;
-        }
-        if(blockM) currentMatchCount++;
-    });
-
-    if(currentMatchCount > ($(`#${pre}-grid`).data('c')||0)) {
-        $(`#${pre}-grid`).data('c', currentMatchCount);
-        playSE('attack.m4a');
-        $(`#${pre}-attack-pop`).show().fadeOut(1000);
-        let target = pre==='p'?'c':'p';
-        $(`#${target}-grid`).addClass('shake');
-        setTimeout(()=> $(`#${target}-grid`).removeClass('shake'), 400);
-        let filled = [];
-        for(let r=0; r<4; r++) for(let c=0; c<4; c++) {
-            let $el = $(`#${target}_${r}_${c}`);
-            if($el.hasClass('fixed') && !$el.attr('data-init')) filled.push($el);
-        }
-        if(filled.length > 0) filled[Math.floor(Math.random()*filled.length)].removeClass('fixed').find('.cell-value').text('');
     }
 }
 
 function useSkill(isCPU=false) {
     if(!gameActive || (!isCPU && (pEn < 100 || isBusy))) return;
-    isBusy = true; const u = isCPU ? cUnit : pUnit;
+    isBusy = true; playSE('ultimate.m4a');
+    const u = isCPU ? cUnit : pUnit;
+    const tid = isCPU ? 'c' : 'p';
+    const opponent = isCPU ? 'p' : 'c';
+
     $('#cutin-img').css('background-image', `url(${units[u].img})`);
     $('#cutin-name').text(u); $('#cutin-skill').text(units[u].skill);
-    $('#cutin-bar').addClass('active'); playSE('ultimate.m4a');
+    $('#cutin-bar').addClass('active');
+    
     setTimeout(() => {
-        let tid = isCPU?'c':'p';
-        if(u==='AKIRA'){
-            let f=0; for(let r=0; r<4; r++) for(let c=0; c<4; c++)
-                if(!$(`#${tid}_${r}_${c}`).hasClass('fixed') && f<2){ $(`#${tid}_${r}_${c}`).addClass('fixed').find('.cell-value').text(ansGrid[r][c]); f++; }
-        } else if(u==='KOTO'){
-            for(let i=0; i<3; i++) setTimeout(()=>checkMatch(tid), i*200);
-        } else if(u==='LUX'){
-            let empty = []; for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#${tid}_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
-            let fc = Math.ceil(empty.length/2);
-            for(let i=0; i<fc; i++){ if(empty.length===0) break; let cell = empty.splice(Math.floor(Math.random()*empty.length),1)[0];
-                $(`#${tid}_${cell.r}_${cell.c}`).addClass('fixed').find('.cell-value').text(ansGrid[cell.r][cell.c]); }
+        if(u === 'AKIRA') {
+            let count = 0, target = gridSize === 4 ? 4 : 8;
+            $(`#${tid}-grid .cell:not(.fixed)`).each(function(){
+                if(count < target) {
+                    let r = this.id.split('_')[1], c = this.id.split('_')[2];
+                    $(this).addClass('fixed').text(ansGrid[r][c]).css('color', 'var(--p-color)');
+                    count++;
+                }
+            });
+            checkMatch(tid);
+        } else if(u === 'KOTO') {
+            $(`#${opponent}-grid`).addClass('shake');
+            let filled = []; $(`#${opponent}-grid .cell.fixed:not([data-init])`).each(function(){ filled.push($(this)); });
+            let rem = gridSize === 4 ? 2 : 6;
+            for(let i=0; i<rem; i++){
+                if(filled.length > 0){
+                    let idx = Math.floor(Math.random()*filled.length);
+                    filled[idx].removeClass('fixed').text('').css('background', 'rgba(157, 80, 187, 0.2)');
+                    setTimeout(()=>filled[idx].css('background',''), 500);
+                    filled.splice(idx, 1);
+                }
+            }
+            if(isCPU) pEn = Math.max(0, pEn - 40); else cEn = Math.max(0, cEn - 40);
+        } else if(u === 'LUX') {
+            const ctr = (gridSize-1)/2; ansGrid = generateSol(gridSize);
+            $(`#${tid}-grid .cell`).each(function(){
+                const r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
+                const dist = Math.sqrt(Math.pow(r-ctr, 2) + Math.pow(c-ctr, 2));
+                setTimeout(() => {
+                    $(this).addClass('gaussian-wave').text('');
+                    setTimeout(() => {
+                        $(this).removeClass('gaussian-wave').removeClass('fixed');
+                        if(Math.random() > 0.45) $(this).addClass('fixed').text(ansGrid[r][c]).attr('data-init', 'true');
+                    }, 800);
+                }, dist * 80);
+            });
         }
-        if(isCPU) cEn=0; else { pEn=0; $('#p-skill-btn').removeClass('ready'); }
-        $('#cutin-bar').removeClass('active'); isBusy=false; checkWin();
-    }, 1000);
+        if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
+        $('#cutin-bar').removeClass('active');
+        setTimeout(() => { isBusy = false; checkWin(); }, 1200);
+    }, 1200);
 }
+
+function openSelector(el) {
+    if(!gameActive || $(el).hasClass('fixed') || el.id.startsWith('c')) return;
+    activeCell = el; let pos = $(el).offset();
+    if(gridSize === 4) $('#cross-selector').css({ top: pos.top + $(el).height()/2 - 70, left: pos.left + $(el).width()/2 - 70 }).fadeIn(100);
+    else $('#selector-9x9').css({ top: pos.top - 20, left: pos.left + 40, display: 'grid' }).fadeIn(100);
+}
+
+function selectNumber(num) {
+    if(!activeCell) return; $('#cross-selector, #selector-9x9').fadeOut(100);
+    let r = activeCell.id.split('_')[1], c = activeCell.id.split('_')[2];
+    if(num != ansGrid[r][c]) {
+        $(activeCell).addClass('wrong'); pEn = Math.max(0, pEn - 10); playSE('wrong.mp3');
+        setTimeout(()=>$(activeCell).removeClass('wrong'), 500);
+    } else {
+        $(activeCell).addClass('fixed').text(num).css('color', 'var(--p-color)');
+        pEn = Math.min(100, pEn + (gridSize==4?12:6)); playSE('correct.mp3');
+        checkMatch('p');
+    }
+    activeCell = null; checkWin();
+}
+
+function checkMatch(pre) {
+    let m = 0; const sub = Math.sqrt(gridSize);
+    for(let i=0; i<gridSize; i++){
+        let r=true, c=true;
+        for(let j=0; j<gridSize; j++){
+            if($(`#${pre}_${i}_${j}`).text() != ansGrid[i][j]) r=false;
+            if($(`#${pre}_${j}_${i}`).text() != ansGrid[j][i]) c=false;
+        }
+        if(r) m++; if(c) m++;
+    }
+    for(let br=0; br<gridSize; br+=sub) for(let bc=0; bc<gridSize; bc+=sub){
+        let b=true; for(let r=0; r<sub; r++) for(let c=0; c<sub; c++) if($(`#${pre}_${br+r}_${bc+c}`).text() != ansGrid[br+r][bc+c]) b=false;
+        if(b) m++;
+    }
+    if(m > ($(`#${pre}-grid`).data('c')||0)) {
+        $(`#${pre}-grid`).data('c', m); playSE('attack.m4a');
+        $(`#${pre}-attack-pop`).show().fadeOut(1000);
+        let target = pre==='p'?'c':'p';
+        $(`#${target}-grid`).addClass('shake'); setTimeout(()=> $(`#${target}-grid`).removeClass('shake'), 400);
+    }
+}
+
+function setup9x9Selector() { let h=''; for(let i=1; i<=9; i++) h+=`<div class="num-btn" onclick="selectNumber(${i})">${i}</div>`; $('#selector-9x9').html(h); }
 
 function gameLoop() {
     if(!gameActive) return;
     if(!isBusy) {
-        let cpuBonus = Math.min(0.4, winStreak * 0.06); 
-        pEn = Math.min(100, pEn + (pUnit==='LUX'?0.2:0.6));
-        cEn = Math.min(100, cEn + (cUnit==='LUX'?0.15:0.3) + cpuBonus);
+        pEn = Math.min(100, pEn + 0.4); cEn = Math.min(100, cEn + 0.4 + (winStreak * 0.1));
         $('#p-energy').css('width', pEn+'%'); $('#c-energy').css('width', cEn+'%');
         if(pEn>=100) $('#p-skill-btn').addClass('ready');
         if(cEn>=100) useSkill(true);
     }
-    let cpuThinkingChance = 0.96 - Math.min(0.04, winStreak * 0.01);
-    if(Math.random() > cpuThinkingChance && !isBusy){
-        let empty = []; for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(!$(`#c_${r}_${c}`).hasClass('fixed')) empty.push({r,c});
-        if(empty.length>0){ let t = empty[Math.floor(Math.random()*empty.length)]; $(`#c_${t.r}_${t.c}`).addClass('fixed').find('.cell-value').text(ansGrid[t.r][t.c]); checkMatch('c'); }
+    if(Math.random() > (0.985 - (winStreak*0.005)) && !isBusy){
+        let e = []; $(`#c-grid .cell:not(.fixed)`).each(function(){ e.push(this); });
+        if(e.length>0){
+            let t = e[Math.floor(Math.random()*e.length)];
+            let r = t.id.split('_')[1], c = t.id.split('_')[2];
+            $(t).addClass('fixed').text(ansGrid[r][c]); checkMatch('c');
+        }
     }
     setTimeout(gameLoop, 250);
 }
 
 function checkWin() {
     if(!gameActive) return;
-    const full = (pre) => {
-        for(let r=0; r<4; r++) for(let c=0; c<4; c++) if($(`#${pre}_${r}_${c}`).find('.cell-value').text() != ansGrid[r][c]) return false;
-        return true;
-    };
-    if(full('p')) showResult(true); else if(full('c')) showResult(false);
+    const f = (id) => { let all=true; $(`#${id}-grid .cell`).each(function(){ let p=this.id.split('_'); if($(this).text() != ansGrid[p[1]][p[2]]) all=false; }); return all; };
+    if(f('p')) showResult(true); else if(f('c')) showResult(false);
 }
 
-function showResult(isWin) {
-    gameActive = false; if(isWin) winStreak++; else winStreak = 0;
-    $('#result-title').text(isWin ? "VICTORY!" : "DEFEAT...");
-    $('#result-title').css('color', isWin ? 'var(--p-color)' : 'var(--c-color)');
-    $('#result-streak-info').text(isWin ? `Current Win Streak: ${winStreak}` : "連勝が途絶えました...");
+function showResult(win) {
+    gameActive = false; winStreak = win ? winStreak + 1 : 0;
+    $('#result-title').text(win ? "VICTORY!" : "DEFEAT...");
+    $('#result-streak-info').text(win ? `Current Win Streak: ${winStreak}` : "連勝が途絶えました...");
+    $('#win-streak-badge').text(winStreak + " Win Streak").toggle(winStreak > 0);
     $('#result-screen').css('display', 'flex').hide().fadeIn(500);
-    if(winStreak > 0) $('#win-streak-badge').text(`${winStreak} Win Streak`).show(); else $('#win-streak-badge').hide();
 }
 
-function rematch() { $('#result-screen').fadeOut(300, () => initGame()); }
-function toTitle() { 
-    gameActive = false;
-    $('#result-screen').fadeOut(300); 
-    $('#selector-screen').fadeIn(300); 
-}
+function rematch() { initGame(); }
+function toTitle() { gameActive = false; if(bgmAudio) bgmAudio.pause(); $('#result-screen, #selector-screen').fadeOut(300, () => $('#selector-screen').fadeIn(300)); }
+function confirmToTitle() { if(confirm("QUIT TO TITLE?")) toTitle(); }
 
-$(document).on('mousedown touchstart', function(e) { 
-    if(!$("#cross-selector").is(e.target) && $("#cross-selector").has(e.target).length === 0) $("#cross-selector").fadeOut(100); 
-});
+$(document).on('mousedown touchstart', function(e) { if(!$(e.target).closest('.cell, #cross-selector, #selector-9x9').length) $('#cross-selector, #selector-9x9').fadeOut(100); });
 </script>
 </body>
 </html>
