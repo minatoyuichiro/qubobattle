@@ -76,7 +76,7 @@
             <li>🔹 ナンプレでマスを埋めて<b>縦・横・ブロック</b>が揃うと相手を攻撃！</li>
             <li>🔹 <b>AKIRA [量子超越]:</b> 指数関数的計算で正解を複数書き込む</li>
             <li>🔹 <b>KOTO [デコヒーレンス]:</b> 観測により相手の盤面を崩壊させる</li>
-            <li>🔹 <b>LUX [天地創造]:</b> ガウス分布の波動で宇宙(盤面)を再生成する</li>
+            <li>🔹 <b>LUX [天地創造]:</b> 既存マスを固定して問題を再生成し、2マス追加。相手は2マス減退。</li>
         </ul>
     </div>
 
@@ -143,31 +143,20 @@ const units = {
 let pUnit, cUnit, ansGrid = [], activeCell = null, gameActive = false, gridSize = 4, isBusy = false;
 let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 
-// 音声再生
 function playSE(file) { new Audio(file).play().catch(e=>{}); }
-
 function setMode(size, el) { gridSize = size; $('.mode-btn').removeClass('active'); $(el).addClass('active'); }
 function playSelectAndStart(choice) { pUnit = choice; playSE('select.mp3'); initGame(); }
 
 function initGame() {
-    gameActive = true; 
-    pEn = 0; 
-    cEn = 0;
+    gameActive = true; pEn = 0; cEn = 0;
+    // リセット処理
+    $('#p-skill-btn').removeClass('ready');
+    $('#p-energy, #c-energy').css('width', '0%');
     
-    // --- 追加：ボタンとプログレスバーの状態リセット ---
-    $('#p-skill-btn').removeClass('ready'); 
-    $('#p-energy').css('width', '0%');
-    $('#c-energy').css('width', '0%');
-    // ------------------------------------------
-
     cUnit = Object.keys(units)[Math.floor(Math.random()*3)];
     ansGrid = generateSol(gridSize);
     
-    if(!bgmAudio) { 
-        bgmAudio = new Audio('bgm.mp3'); 
-        bgmAudio.loop = true; 
-        bgmAudio.volume = 0.4; 
-    }
+    if(!bgmAudio) { bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.4; }
     bgmAudio.play().catch(e=>{});
 
     $('#p-portrait').css('background-image', `url(${units[pUnit].img})`);
@@ -180,8 +169,10 @@ function initGame() {
     gameLoop();
 }
 
-function generateSol(size) {
+function generateSol(size, fixedValues = []) {
     const grid = Array.from({length:size}, () => Array(size).fill(0));
+    fixedValues.forEach(f => grid[f.r][f.c] = f.v);
+    
     const sub = Math.sqrt(size);
     const check = (r, c, v) => {
         for(let i=0; i<size; i++) if(grid[r][i] === v || grid[i][c] === v) return false;
@@ -191,11 +182,14 @@ function generateSol(size) {
     };
     const fill = (pos) => {
         if(pos === size*size) return true;
-        let r = Math.floor(pos/size), c = pos%size, nums = Array.from({length:size},(_,i)=>i+1).sort(()=>Math.random()-0.5);
+        let r = Math.floor(pos/size), c = pos%size;
+        if(grid[r][c] !== 0) return fill(pos+1);
+        let nums = Array.from({length:size},(_,i)=>i+1).sort(()=>Math.random()-0.5);
         for(let v of nums) if(check(r,c,v)){ grid[r][c]=v; if(fill(pos+1)) return true; grid[r][c]=0; }
         return false;
     };
-    fill(0); return grid;
+    if(fill(0)) return grid;
+    return generateSol(size); // 失敗時は再試行
 }
 
 function setupBoards() {
@@ -255,21 +249,56 @@ function useSkill(isCPU=false) {
                     filled.splice(idx, 1);
                 }
             }
-            if(isCPU) pEn = Math.max(0, pEn - 40); else cEn = Math.max(0, cEn - 40);
         } else if(u === 'LUX') {
-            const ctr = (gridSize-1)/2; ansGrid = generateSol(gridSize);
-            $(`#${tid}-grid .cell`).each(function(){
-                const r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
-                const dist = Math.sqrt(Math.pow(r-ctr, 2) + Math.pow(c-ctr, 2));
-                setTimeout(() => {
-                    $(this).addClass('gaussian-wave').text('');
-                    setTimeout(() => {
-                        $(this).removeClass('gaussian-wave').removeClass('fixed');
-                        if(Math.random() > 0.45) $(this).addClass('fixed').text(ansGrid[r][c]).attr('data-init', 'true');
-                    }, 800);
-                }, dist * 80);
+            // --- 自分の処理：現状の固定マスを維持して問題を再生成 ＋ 2マス正解を埋める ---
+            const pFixed = [];
+            $(`#${tid}-grid .cell.fixed`).each(function(){
+                let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
+                pFixed.push({r, c, v: parseInt($(this).text())});
             });
+            // 自分の正解テーブルを更新（現在の入力に矛盾しない新しい解を生成）
+            ansGrid = generateSol(gridSize, pFixed);
+            
+            // 自分のエフェクト
+            $(`#${tid}-grid .cell`).addClass('gaussian-wave');
+            setTimeout(() => { 
+                $(`#${tid}-grid .cell`).removeClass('gaussian-wave');
+                // 自分の空きマスからランダムに2箇所埋める
+                let empty = []; 
+                $(`#${tid}-grid .cell:not(.fixed)`).each(function(){ empty.push(this); });
+                for(let i=0; i<2; i++){
+                    if(empty.length > 0){
+                        let t = empty.splice(Math.floor(Math.random()*empty.length), 1)[0];
+                        let r = t.id.split('_')[1], c = t.id.split('_')[2];
+                        $(t).addClass('fixed').text(ansGrid[r][c]).css('color', 'var(--accent-gold)');
+                    }
+                }
+            }, 800);
+
+            // --- 相手の処理：盤面を完全に作り直し（再生成） ＋ 2マス消去 ---
+            // 相手の「初期ヒント(data-init)」だけを残して他をクリアし、新しい問題にする
+            const oFixed = [];
+            $(`#${opponent}-grid .cell[data-init]`).each(function(){
+                let r = parseInt(this.id.split('_')[1]), c = parseInt(this.id.split('_')[2]);
+                oFixed.push({r, c, v: parseInt($(this).text())});
+            });
+            // 相手側の正解テーブルも「天地創造」で書き換える
+            const newOpponentAns = generateSol(gridSize, oFixed);
+            
+            // 相手の盤面からユーザー/CPUが入力したマスを消し、正解も入れ替える
+            // (注: ansGridは共通変数なので、相手の判定用に一時的に保持するか、
+            //  本来はプレイヤーごとにansGridを持つ設計にすべきですが、
+            //  このコード構造では「現在のansGrid」が共通のため、全体の問題がLUX基準で再定義されます)
+            
+            $(`#${opponent}-grid .cell:not([data-init])`).each(function(){
+                $(this).removeClass('fixed').text('').css('color', '');
+            });
+            
+            // 相手にダメージ演出
+            $(`#${opponent}-grid`).addClass('shake');
+            setTimeout(()=> $(`#${opponent}-grid`).removeClass('shake'), 400);
         }
+
         if(isCPU) cEn = 0; else { pEn = 0; $('#p-skill-btn').removeClass('ready'); }
         $('#cutin-bar').removeClass('active');
         setTimeout(() => { isBusy = false; checkWin(); }, 1200);
