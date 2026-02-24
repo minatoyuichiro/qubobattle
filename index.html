@@ -10,9 +10,9 @@
         :root { --p-color: #00d2ff; --c-color: #ff4757; --accent-gold: #ffcc00; }
         body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; touch-action: manipulation; }
         
+        /* 以前のスタイルを維持 */
         .overlay-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
         .how-to-play { max-width: 500px; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 2px dashed #ccc; font-size: 0.85rem; }
-        
         .char-card-container { display: flex; gap: 15px; margin-top: 10px; padding-bottom: 50px; }
         .char-card { width: 140px; border: 3px solid #eee; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; text-align: center; background: #fff; }
         .char-card:hover { transform: translateY(-10px); border-color: var(--p-color); box-shadow: 0 10px 20px rgba(0,210,255,0.2); }
@@ -21,15 +21,13 @@
         #result-screen { display: none; background: rgba(255,255,255,0.98); z-index: 8000; align-items: center; justify-content: center; }
         .result-box { text-align: center; padding: 50px; border-radius: 40px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); background: white; border: 8px solid #f0f0f0; max-width: 90%; }
 
-        .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
-        .board-wrapper { flex: 1; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
+        .battle-stage { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; }
+        .board-wrapper { flex: 1; min-width: 300px; max-width: 360px; background: #f8f9fa; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
         
         .portrait { width: 70px; height: 70px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-size: cover; background-position: center; margin-bottom: 10px; }
         .energy-bar-bg { width: 100%; height: 14px; background: #ddd; border-radius: 7px; overflow: hidden; margin-bottom: 15px; border: 2px solid #eee; }
         .energy-fill { height: 100%; width: 0%; transition: width 0.2s; }
-        .energy-penalty { animation: penalty-flash 0.5s; background: #333 !important; }
-        @keyframes penalty-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
+        
         .sudoku-grid { border: 4px solid #333 !important; background: white; width: 100%; border-collapse: collapse; table-layout: fixed; }
         .sudoku-grid td { border: 1px solid #ddd; width: 25%; padding: 0; position: relative; }
         .bold-right { border-right: 4px solid #333 !important; }
@@ -39,18 +37,18 @@
         .fixed { background: #f0f0f0; color: #555; }
         .wrong { color: #ff4757; background: rgba(255, 71, 87, 0.2); animation: shake-anim 0.3s; }
 
+        /* 十字セレクター */
         #cross-selector { position: absolute; display: none; width: 140px; height: 140px; z-index: 6000; pointer-events: none; }
-        .cross-btn { 
-            position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; 
-            background: white; color: #333; font-weight: 900; font-size: 1.4rem; 
-            display: flex; align-items: center; justify-content: center; 
-            pointer-events: auto; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 #333;
-        }
+        .cross-btn { position: absolute; width: 44px; height: 44px; border: 3px solid #333; border-radius: 50%; background: white; color: #333; font-weight: 900; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 #333; }
         .cross-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #333; background: var(--p-color); color: white; }
         .btn-up { top: 0; left: 48px; } .btn-right { top: 48px; right: 0; } .btn-down { bottom: 0; left: 48px; } .btn-left { top: 48px; left: 0; }
 
         .ultimate-btn { width: 100%; height: 55px; border-radius: 30px; border: none; background: #ccc; color: white; font-weight: 800; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 0 #999; font-size: 1.2rem; }
         .ultimate-btn.ready { background: linear-gradient(45deg, var(--p-color), #3a7bd5); cursor: pointer; animation: bounce 0.8s infinite; box-shadow: 0 5px 0 #0076bb; }
+
+        /* 追加：対戦中タイトル戻るボタン */
+        .abort-btn { display: block; margin: 20px auto; background: none; border: 2px solid #ccc; color: #999; border-radius: 10px; padding: 5px 15px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .abort-btn:hover { background: #eee; color: #666; border-color: #999; }
 
         .cutin { position: fixed; top: 50%; left: -100%; width: 100%; height: 140px; background: rgba(0,0,0,0.9); z-index: 10000; transform: translateY(-50%); color: white; display: flex; align-items: center; transition: 0.4s; border-top: 4px solid var(--accent-gold); border-bottom: 4px solid var(--accent-gold); }
         .cutin.active { left: 0; opacity: 1; }
@@ -67,9 +65,8 @@
     <div class="how-to-play">
         <h5 class="font-weight-bold mb-3 text-center">⚔️ 遊び方とルール</h5>
         <ul class="list-unstyled mb-0">
-            <li>🔹 マスをクリックし、十字キーで入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
+            <li>🔹 マスをクリックし、十字で入力（<b>上:1 / 右:2 / 下:3 / 左:4</b>）</li>
             <li>🔹 <b>縦・横・2x2ブロック</b>のいずれかが揃うと相手を攻撃！</li>
-            <li>🔹 ミスすると溜まったゲージが0になります！</li>
             <li class="mt-2 small">⚡ <b>AKIRA:</b> ヒント2つ / 🔮 <b>KOTO:</b> 3回攻撃 / ☀️ <b>LUX:</b> 空欄半分を埋める</li>
         </ul>
     </div>
@@ -103,27 +100,31 @@
     <div class="ml-4"><h2 id="cutin-name" class="font-weight-bold mb-0"></h2><h4 id="cutin-skill" class="text-warning small"></h4></div>
 </div>
 
-<div class="battle-stage">
-    <div class="board-wrapper">
-        <div class="portrait" id="p-portrait"></div>
-        <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
-        <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
-        <table id="p-grid" class="sudoku-grid"></table>
-        <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
-        <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
+<div>
+    <div class="battle-stage">
+        <div class="board-wrapper">
+            <div class="portrait" id="p-portrait"></div>
+            <div class="energy-bar-bg"><div id="p-energy" class="energy-fill" style="background:var(--p-color)"></div></div>
+            <div class="font-weight-bold small mb-1" style="color:var(--p-color)">PLAYER: <span id="p-name-label"></span></div>
+            <table id="p-grid" class="sudoku-grid"></table>
+            <button id="p-skill-btn" class="ultimate-btn" onclick="useSkill()">ULTIMATE</button>
+            <div id="p-attack-pop" class="attack-pop">ATTACK!</div>
+        </div>
+        <div class="board-wrapper">
+            <div class="portrait" id="c-portrait"></div>
+            <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
+            <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
+            <table id="c-grid" class="sudoku-grid"></table>
+            <button class="ultimate-btn" disabled>CPU THINKING...</button>
+            <div id="c-attack-pop" class="attack-pop">ATTACK!</div>
+        </div>
     </div>
-    <div class="board-wrapper">
-        <div class="portrait" id="c-portrait"></div>
-        <div class="energy-bar-bg"><div id="c-energy" class="energy-fill" style="background:var(--c-color)"></div></div>
-        <div class="font-weight-bold small mb-1" style="color:var(--c-color)">CPU: <span id="c-name-label"></span></div>
-        <table id="c-grid" class="sudoku-grid"></table>
-        <button class="ultimate-btn" disabled>CPU THINKING...</button>
-        <div id="c-attack-pop" class="attack-pop">ATTACK!</div>
-    </div>
+    <button class="abort-btn" onclick="confirmToTitle()">QUIT TO TITLE</button>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
+// (これまでのスクリプトを継承)
 const units = {
     AKIRA: { img: 'akira.jpg', skill: '電子固定 [Fixed Obs.]', color: '#00d2ff' },
     KOTO: { img: 'koto.jpg', skill: '事象封印 [Event Seal]', color: '#9d50bb' },
@@ -133,10 +134,7 @@ let pUnit, cUnit, ansGrid = [], isBusy = false, activeCell = null, gameActive = 
 let pEn = 0, cEn = 0, winStreak = 0, bgmAudio;
 
 function playSE(file) { new Audio(file).play().catch(e=>{}); }
-
-function playSelectAndStart(choice) {
-    pUnit = choice; playSE('select.mp3'); setTimeout(() => initGame(), 200);
-}
+function playSelectAndStart(choice) { pUnit = choice; playSE('select.mp3'); setTimeout(() => initGame(), 200); }
 
 function initGame() {
     gameActive = true;
@@ -152,6 +150,14 @@ function initGame() {
     $('#p-grid, #c-grid').empty().data('c', 0);
     setupBoards();
     gameLoop();
+}
+
+// 追加：対戦中断の確認
+function confirmToTitle() {
+    if(confirm("対戦を中断してタイトルに戻りますか？\n(連勝記録はリセットされません)")) {
+        gameActive = false;
+        toTitle();
+    }
 }
 
 function generateSol() {
@@ -219,7 +225,6 @@ function selectNumber(num) {
 
 function checkMatch(pre) {
     let currentMatchCount = 0;
-    // 縦横チェック
     for(let i=0; i<4; i++){
         let rowM=true, colM=true;
         for(let j=0; j<4; j++){
@@ -228,7 +233,6 @@ function checkMatch(pre) {
         }
         if(rowM) currentMatchCount++; if(colM) currentMatchCount++;
     }
-    // 2x2ブロックチェック
     const blocks = [[0,0],[0,2],[2,0],[2,2]];
     blocks.forEach(b => {
         let blockM = true;
@@ -315,7 +319,11 @@ function showResult(isWin) {
 }
 
 function rematch() { $('#result-screen').fadeOut(300, () => initGame()); }
-function toTitle() { $('#result-screen').fadeOut(300); $('#selector-screen').fadeIn(300); }
+function toTitle() { 
+    gameActive = false;
+    $('#result-screen').fadeOut(300); 
+    $('#selector-screen').fadeIn(300); 
+}
 
 $(document).on('mousedown touchstart', function(e) { 
     if(!$("#cross-selector").is(e.target) && $("#cross-selector").has(e.target).length === 0) $("#cross-selector").fadeOut(100); 
