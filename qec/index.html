@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QEC Puzzle - 量子誤り訂正パズル</title>
+<meta name="description" content="反復符号からサーフェスコード、カラーコード、qLDPC(二変数バイシクル符号)まで、実際の論文の構成で学ぶ量子誤り訂正パズル">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⟨ψ⟩</span>
+    <div>
+      <h1>QEC Puzzle</h1>
+      <div class="sub">量子誤り訂正パズル — 論文の符号をそのまま解く</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="levels" role="tab">ステージ</button>
+    <button class="tab" data-view="free" role="tab">フリープレイ</button>
+    <button class="tab" data-view="lab" role="tab">しきい値ラボ</button>
+    <button class="tab" data-view="refs" role="tab">解説・文献</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ===================== PLAY VIEW (levels + free play) ===================== -->
+  <section id="view-play" class="view active">
+    <aside class="levelnav" id="levelnav"></aside>
+
+    <div class="playcol">
+      <div class="freebar" id="freebar" hidden>
+        <label>符号 <select id="freeCode"></select></label>
+        <label>ノイズ <select id="freeNoise">
+          <option value="depol">脱分極 (X,Y,Z 等確率)</option>
+          <option value="X">ビット反転 X のみ</option>
+          <option value="Z">位相反転 Z のみ</option>
+          <option value="biasZ">Z バイアス (η=100)</option>
+        </select></label>
+        <label>モード <select id="freeMode">
+          <option value="count">エラー個数を固定</option>
+          <option value="iid">物理エラー率 p (独立同分布)</option>
+        </select></label>
+        <label id="freeCountWrap">個数 <input id="freeCount" type="number" min="1" max="12" value="2"></label>
+        <label id="freePWrap" hidden>p <input id="freeP" type="number" min="0.001" max="0.3" step="0.005" value="0.05"></label>
+        <button class="btn" id="freeGo">新しい問題</button>
+      </div>
+
+      <div class="boardhead">
+        <div>
+          <div class="lvtitle" id="lvTitle">—</div>
+          <div class="badges" id="lvBadges"></div>
+        </div>
+        <div class="rounds" id="roundDots"></div>
+      </div>
+
+      <div class="boardwrap" id="boardWrap">
+        <svg id="board" role="img" aria-label="符号の盤面"></svg>
+        <div class="tooltip" id="tip" hidden></div>
+      </div>
+
+      <div class="toolbar" id="toolbar">
+        <div class="tools" role="radiogroup" aria-label="訂正に使うパウリ演算子">
+          <button class="tool tx active" data-p="1" title="キー 1 / x">X</button>
+          <button class="tool tz" data-p="2" title="キー 2 / z">Z</button>
+          <button class="tool ty" data-p="3" title="キー 3 / y">Y</button>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" id="btnClear" title="訂正をすべて消す">クリア</button>
+          <button class="btn ghost" id="btnLogical" title="論理演算子を表示">論理演算子</button>
+          <button class="btn ghost" id="btnMatrix" title="検査行列を表示">検査行列</button>
+          <button class="btn ghost" id="btnHint" title="キー h">ヒント(デコーダ)</button>
+          <button class="btn primary" id="btnSubmit" title="Enter">判定する</button>
+        </div>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="result" id="result" hidden></div>
+      <canvas id="matrix" hidden></canvas>
+    </div>
+
+    <aside class="lesson" id="lesson"></aside>
+  </section>
+
+  <!-- ===================== LAB ===================== -->
+  <section id="view-lab" class="view">
+    <div class="labwrap">
+      <div class="labintro">
+        <h2>しきい値ラボ — 符号容量ノイズでのモンテカルロ実験</h2>
+        <p>ゲームで使っているのと同じデコーダ (BP+OSD) で、物理エラー率 p に対する論理エラー率 p<sub>L</sub> を計測します。
+          符号距離 d を大きくすると、しきい値 p<sub>th</sub> より下では p<sub>L</sub> が指数的に下がり、上では逆に悪化します。
+          これが Google の Willow 実験 (Nature 2025) で示された「しきい値以下」の意味です (実機は測定エラーを含む回路ノイズなので、しきい値は ~1% と本ラボの値より低くなります)。</p>
+      </div>
+      <div class="labctl">
+        <label>実験 <select id="labFamily">
+          <option value="surf">回転サーフェスコード d = 3, 5, 7</option>
+          <option value="color">6.6.6 カラーコード d = 3, 5, 7</option>
+          <option value="rep">ビット反転反復符号 d = 3, 5, 7</option>
+          <option value="bb">BB符号 [[72,12,6]] / [[90,8,10]] / [[144,12,12]]</option>
+        </select></label>
+        <label>ノイズ <select id="labNoise">
+          <option value="depol">脱分極</option>
+          <option value="X">ビット反転のみ</option>
+        </select></label>
+        <label>試行回数/点 <select id="labShots">
+          <option>200</option><option selected>500</option><option>1000</option><option>3000</option>
+        </select></label>
+        <button class="btn primary" id="labRun">実行</button>
+        <button class="btn ghost" id="labStop" disabled>停止</button>
+        <span class="labprog" id="labProg"></span>
+      </div>
+      <div class="chartcard">
+        <div class="legend" id="labLegend"></div>
+        <div class="chartbox"><svg id="labChart"></svg><div class="tooltip" id="labTip" hidden></div></div>
+        <details class="tableview"><summary>数値表を見る</summary><div id="labTable"></div></details>
+        <p class="note" id="labNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REFS ===================== -->
+  <section id="view-refs" class="view">
+    <article class="refs" id="refs"></article>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modalcard" id="modalCard"></div>
+</div>
+
+<script src="core.js"></script>
+<script src="levels.js"></script>
+<script src="game.js"></script>
+<script src="lab.js"></script>
+</body>
+</html>
