@@ -1,0 +1,2394 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QEC Puzzle - 量子誤り訂正パズル</title>
+<meta name="description" content="反復符号からサーフェスコード、カラーコード、qLDPC(二変数バイシクル符号)まで、実際の論文の構成で学ぶ量子誤り訂正パズル">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --panel: #151b24;
+  --panel2: #1c2430;
+  --line: #2a3442;
+  --text: #e8ecf1;
+  --text2: #a9b4c2;
+  --muted: #6f7c8c;
+  --accent: #5cc8ff;
+  --x: #3987e5;
+  --z: #e8713a;
+  --y: #9085e9;
+  --m: #22b07d;
+  --ok: #2fbf71;
+  --bad: #ef5a5a;
+  --warn: #e8b400;
+  --face-r: #e56b6b;
+  --face-g: #4cbf6b;
+  --face-b: #5b8ff0;
+  --qubit: #263243;
+  --qubit-stroke: #8fa3ba;
+  --surface-1: #151b24;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f4f6f9;
+    --panel: #ffffff;
+    --panel2: #eef2f6;
+    --line: #d5dce5;
+    --text: #18202b;
+    --text2: #4a5666;
+    --muted: #7b8796;
+    --accent: #0a84c6;
+    --x: #2a78d6;
+    --z: #db5e24;
+    --y: #6250d6;
+    --m: #138a5f;
+    --qubit: #ffffff;
+    --qubit-stroke: #5c6b7d;
+    --surface-1: #ffffff;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'M PLUS Rounded 1c', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+button, select, input { font: inherit; color: inherit; }
+.mono, code { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+code { background: var(--panel2); padding: 1px 5px; border-radius: 5px; font-size: 0.9em; }
+a { color: var(--accent); }
+
+/* ---------- header ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel);
+  position: sticky; top: 0; z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 20px;
+  background: linear-gradient(135deg, var(--x), var(--z)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+h1 { margin: 0; font-size: 20px; letter-spacing: 0.02em; }
+.sub { font-size: 12px; color: var(--text2); }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  border: 1px solid var(--line); background: transparent; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--text2);
+}
+.tab.active { background: var(--accent); border-color: var(--accent); color: #04121c; font-weight: 700; }
+
+.view { display: none; }
+.view.active { display: grid; }
+
+/* ---------- play layout ---------- */
+#view-play {
+  grid-template-columns: 250px minmax(0, 1fr) 360px;
+  gap: 16px; padding: 16px; max-width: 1600px; margin: 0 auto;
+}
+@media (max-width: 1200px) { #view-play { grid-template-columns: 220px minmax(0, 1fr); } .lesson { grid-column: 1 / -1; } }
+
+
+.levelnav, .lesson, .playcol { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.levelnav { padding: 10px; overflow-y: auto; max-height: calc(100vh - 110px); position: sticky; top: 76px; align-self: start; }
+
+.chap { margin: 6px 0 12px; }
+.chap h3 { font-size: 12px; color: var(--muted); margin: 6px 6px; letter-spacing: 0.05em; font-weight: 700; }
+.lvbtn {
+  display: flex; width: 100%; align-items: center; gap: 8px; text-align: left; border: 0; background: transparent;
+  padding: 7px 8px; border-radius: 9px; cursor: pointer; color: var(--text); font-size: 13.5px;
+}
+.lvbtn:hover { background: var(--panel2); }
+.lvbtn.active { background: var(--panel2); outline: 1px solid var(--accent); }
+.lvbtn .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); min-width: 28px; }
+.lvbtn .stars { margin-left: auto; color: var(--warn); font-size: 11px; letter-spacing: -1px; white-space: nowrap; }
+
+.playcol { padding: 14px; min-width: 0; }
+.boardhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.lvtitle { font-size: 18px; font-weight: 800; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--panel2); color: var(--text2); border: 1px solid var(--line); }
+.badge.code { font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+.rounds { display: flex; gap: 5px; padding-top: 6px; }
+.rdot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+.rdot.cur { border-color: var(--accent); }
+.rdot.ok { background: var(--ok); border-color: var(--ok); }
+.rdot.bad { background: var(--bad); border-color: var(--bad); }
+.rdot.meh { background: var(--warn); border-color: var(--warn); }
+
+.boardwrap { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+#board { display: block; width: 100%; height: min(62vh, 640px); touch-action: manipulation; user-select: none; }
+.tooltip {
+  position: absolute; pointer-events: none; background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+  padding: 6px 9px; border-radius: 8px; font-size: 12px; max-width: 280px; z-index: 5; box-shadow: 0 6px 18px rgba(0,0,0,.3);
+}
+
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.tools { display: flex; gap: 6px; }
+.tool {
+  width: 46px; height: 42px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel2);
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; cursor: pointer;
+}
+.tool.tx { color: var(--x); } .tool.tz { color: var(--z); } .tool.ty { color: var(--y); }
+.tool.active.tx { border-color: var(--x); background: color-mix(in srgb, var(--x) 22%, transparent); }
+.tool.active.tz { border-color: var(--z); background: color-mix(in srgb, var(--z) 22%, transparent); }
+.tool.active.ty { border-color: var(--y); background: color-mix(in srgb, var(--y) 22%, transparent); }
+.tool:disabled { opacity: .3; cursor: not-allowed; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel2); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13.5px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: #04121c; border-color: var(--accent); }
+.btn.ghost { background: transparent; }
+.btn.on { border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.status { margin-top: 8px; font-size: 13.5px; color: var(--text2); min-height: 22px; }
+.status b { color: var(--text); }
+.result { margin-top: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); }
+.result.ok { border-color: var(--ok); }
+.result.bad { border-color: var(--bad); }
+.result.meh { border-color: var(--warn); }
+.result h4 { margin: 0 0 4px; font-size: 16px; }
+.result .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.pstr { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; color: var(--text2); }
+#matrix { margin-top: 10px; width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); image-rendering: pixelated; }
+
+.freebar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; padding: 10px; margin-bottom: 10px; background: var(--panel2); border-radius: 10px; }
+.freebar label, .labctl label { display: flex; flex-direction: column; font-size: 12px; color: var(--text2); gap: 2px; }
+select, input[type=number] { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+input[type=number] { width: 90px; }
+
+/* ---------- lesson ---------- */
+.lesson { padding: 16px 18px; overflow-y: auto; max-height: calc(100vh - 110px); position: sticky; top: 76px; align-self: start; font-size: 14px; }
+@media (max-width: 1200px) { .lesson { position: static; max-height: none; } }
+.lesson h2 { font-size: 17px; margin: 0 0 8px; }
+.lesson h3 { font-size: 14px; margin: 16px 0 6px; color: var(--accent); }
+.lesson p { margin: 6px 0; }
+.lesson ul { padding-left: 20px; margin: 6px 0; }
+.lesson li { margin: 3px 0; }
+.lesson .goal { background: var(--panel2); border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 6px; margin: 8px 0; }
+.lesson table { border-collapse: collapse; font-size: 12.5px; margin: 6px 0; }
+.lesson td, .lesson th { border: 1px solid var(--line); padding: 3px 7px; text-align: center; }
+.ref { font-size: 12.5px; color: var(--text2); margin: 5px 0; padding-left: 10px; border-left: 2px solid var(--line); }
+.ref i { color: var(--text); font-style: normal; }
+.legendrow { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text2); margin: 6px 0; }
+.legendrow span { display: inline-flex; gap: 5px; align-items: center; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+/* ---------- SVG board ---------- */
+.q circle.body { fill: var(--qubit); stroke: var(--qubit-stroke); stroke-width: 0.07; }
+.q { cursor: pointer; }
+.q:hover circle.body { stroke: var(--accent); stroke-width: 0.12; }
+.q.hl circle.body { stroke: var(--accent); stroke-width: 0.14; }
+.q.hasX circle.body { fill: color-mix(in srgb, var(--x) 35%, var(--qubit)); stroke: var(--x); }
+.q.hasZ circle.body { fill: color-mix(in srgb, var(--z) 35%, var(--qubit)); stroke: var(--z); }
+.q.hasY circle.body { fill: color-mix(in srgb, var(--y) 35%, var(--qubit)); stroke: var(--y); }
+.q text.lbl { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--text); }
+.q text.idx { fill: var(--muted); text-anchor: middle; pointer-events: none; font-family: 'JetBrains Mono', monospace; }
+.q .errbadge circle { stroke: var(--bg); stroke-width: 0.05; }
+.q .errbadge text { fill: #fff; font-weight: 700; text-anchor: middle; dominant-baseline: central; font-family: 'JetBrains Mono', monospace; pointer-events: none; }
+.q .resid { fill: none; stroke: var(--bad); stroke-dasharray: 0.15 0.1; }
+.q .logring { fill: none; stroke-width: 0.12; }
+
+.st { cursor: pointer; }
+.st .poly { stroke: var(--line); stroke-width: 0.05; transition: fill .15s; }
+.st.X .poly { fill: color-mix(in srgb, var(--x) 16%, transparent); }
+.st.Z .poly { fill: color-mix(in srgb, var(--z) 16%, transparent); }
+.st.M .poly { fill: color-mix(in srgb, var(--m) 14%, transparent); }
+.st.on.X .poly { fill: color-mix(in srgb, var(--x) 60%, transparent); }
+.st.on.Z .poly { fill: color-mix(in srgb, var(--z) 60%, transparent); }
+.st.on.M .poly { fill: color-mix(in srgb, var(--m) 60%, transparent); }
+.st .mk { stroke: var(--bg); stroke-width: 0.06; }
+.st.X .mk { fill: color-mix(in srgb, var(--x) 30%, var(--panel)); }
+.st.Z .mk { fill: color-mix(in srgb, var(--z) 30%, var(--panel)); }
+.st.M .mk { fill: color-mix(in srgb, var(--m) 30%, var(--panel)); }
+.st.on.X .mk { fill: var(--x); filter: url(#glowX); }
+.st.on.Z .mk { fill: var(--z); filter: url(#glowZ); }
+.st.on.M .mk { fill: var(--m); filter: url(#glowM); }
+.st.on .mk { animation: pulse 1.4s ease-in-out infinite; }
+.st.hl .mk, .st.hl .poly { stroke: var(--accent); stroke-width: 0.12; }
+@keyframes pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .st.on .mk { animation: none; } }
+.edge { stroke: var(--line); stroke-width: 0.05; }
+.edge.X { stroke: color-mix(in srgb, var(--x) 45%, var(--line)); }
+.edge.Z { stroke: color-mix(in srgb, var(--z) 45%, var(--line)); }
+.edge.M { stroke: color-mix(in srgb, var(--m) 45%, var(--line)); }
+.edge.on { stroke-width: 0.12; }
+.edge.on.X { stroke: var(--x); } .edge.on.Z { stroke: var(--z); } .edge.on.M { stroke: var(--m); }
+.edge.hl { stroke: var(--accent); stroke-width: 0.12; }
+.plet { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.plet.pX { fill: var(--x); } .plet.pZ { fill: var(--z); } .plet.pY { fill: var(--y); }
+.face { stroke: none; }
+.face.r { fill: color-mix(in srgb, var(--face-r) 20%, transparent); }
+.face.g { fill: color-mix(in srgb, var(--face-g) 20%, transparent); }
+.face.b { fill: color-mix(in srgb, var(--face-b) 20%, transparent); }
+.faceline { fill: none; stroke: var(--line); stroke-width: 0.05; }
+.ghost text { fill: var(--accent); }
+.ghost circle { fill: none; stroke: var(--accent); stroke-dasharray: 0.12 0.08; stroke-width: 0.08; }
+.torusnote { fill: var(--muted); font-size: 0.6px; }
+
+/* spacetime */
+.stgrid { stroke: var(--line); stroke-width: 0.04; }
+.stdata { stroke: color-mix(in srgb, var(--x) 30%, var(--line)); stroke-width: 0.06; stroke-dasharray: 0.15 0.15; }
+.ev { cursor: pointer; }
+.ev circle { fill: var(--z); stroke: var(--bg); stroke-width: 0.05; }
+.ev.sel circle { stroke: var(--accent); stroke-width: 0.14; }
+.ev.paired circle { fill: color-mix(in srgb, var(--z) 45%, var(--panel)); }
+.syncell { fill: var(--panel2); }
+.syncell.on { fill: color-mix(in srgb, var(--z) 30%, var(--panel2)); }
+.bound { fill: color-mix(in srgb, var(--accent) 8%, transparent); stroke: var(--line); stroke-width: 0.04; cursor: pointer; }
+.bound:hover { fill: color-mix(in srgb, var(--accent) 20%, transparent); }
+.pairline { stroke: var(--accent); stroke-width: 0.12; stroke-linecap: round; }
+.pairline.dec { stroke: var(--warn); stroke-dasharray: 0.2 0.15; }
+.axislbl { fill: var(--muted); font-size: 0.42px; font-family: 'JetBrains Mono', monospace; }
+.faultmark { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-anchor: middle; dominant-baseline: central; font-size: 0.5px; }
+
+/* ---------- modal ---------- */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.modal[hidden] { display: none; }
+.modalcard { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; max-width: 480px; width: 100%; text-align: center; }
+.modalcard .bigstars { font-size: 34px; color: var(--warn); letter-spacing: 4px; }
+
+/* ---------- lab ---------- */
+#view-lab, #view-refs { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.labwrap { display: flex; flex-direction: column; gap: 12px; }
+.labintro h2 { margin: 0 0 6px; font-size: 18px; }
+.labintro p { color: var(--text2); margin: 0; font-size: 14px; }
+.labctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.labprog { font-size: 13px; color: var(--text2); }
+.chartcard { background: var(--surface-1); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.chartbox { position: relative; }
+#labChart { width: 100%; height: 420px; display: block; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.tableview { margin-top: 8px; font-size: 13px; }
+.tableview table { border-collapse: collapse; margin-top: 6px; }
+.tableview td, .tableview th { border: 1px solid var(--line); padding: 3px 8px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.note { font-size: 12.5px; color: var(--muted); }
+.gridline { stroke: var(--line); stroke-width: 1; }
+.axis text { fill: var(--muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+.axistitle { fill: var(--text2); font-size: 12px; }
+
+/* ---------- refs ---------- */
+.refs { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; }
+.refs h2 { font-size: 18px; margin-top: 0; }
+.refs h3 { color: var(--accent); font-size: 15px; margin-top: 22px; }
+.refs p, .refs li { font-size: 14px; color: var(--text2); }
+.refs dt { font-weight: 700; margin-top: 10px; }
+.refs dd { margin: 2px 0 0 0; color: var(--text2); font-size: 14px; }
+.reftable { border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.reftable td, .reftable th { border: 1px solid var(--line); padding: 4px 8px; color: var(--text2); }
+
+/* ---------- phone layout (kept last so it wins) ---------- */
+@media (max-width: 760px) {
+  #view-play { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  .levelnav { position: static; max-height: 200px; }
+  .topbar { position: static; padding: 10px 16px; }
+  #board { height: 58vh; }
+  .actions .btn { padding: 7px 10px; font-size: 12.5px; }
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⟨ψ⟩</span>
+    <div>
+      <h1>QEC Puzzle</h1>
+      <div class="sub">量子誤り訂正パズル — 論文の符号をそのまま解く</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="levels" role="tab">ステージ</button>
+    <button class="tab" data-view="free" role="tab">フリープレイ</button>
+    <button class="tab" data-view="lab" role="tab">しきい値ラボ</button>
+    <button class="tab" data-view="refs" role="tab">解説・文献</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ===================== PLAY VIEW (levels + free play) ===================== -->
+  <section id="view-play" class="view active">
+    <aside class="levelnav" id="levelnav"></aside>
+
+    <div class="playcol">
+      <div class="freebar" id="freebar" hidden>
+        <label>符号 <select id="freeCode"></select></label>
+        <label>ノイズ <select id="freeNoise">
+          <option value="depol">脱分極 (X,Y,Z 等確率)</option>
+          <option value="X">ビット反転 X のみ</option>
+          <option value="Z">位相反転 Z のみ</option>
+          <option value="biasZ">Z バイアス (η=100)</option>
+        </select></label>
+        <label>モード <select id="freeMode">
+          <option value="count">エラー個数を固定</option>
+          <option value="iid">物理エラー率 p (独立同分布)</option>
+        </select></label>
+        <label id="freeCountWrap">個数 <input id="freeCount" type="number" min="1" max="12" value="2"></label>
+        <label id="freePWrap" hidden>p <input id="freeP" type="number" min="0.001" max="0.3" step="0.005" value="0.05"></label>
+        <button class="btn" id="freeGo">新しい問題</button>
+      </div>
+
+      <div class="boardhead">
+        <div>
+          <div class="lvtitle" id="lvTitle">—</div>
+          <div class="badges" id="lvBadges"></div>
+        </div>
+        <div class="rounds" id="roundDots"></div>
+      </div>
+
+      <div class="boardwrap" id="boardWrap">
+        <svg id="board" role="img" aria-label="符号の盤面"></svg>
+        <div class="tooltip" id="tip" hidden></div>
+      </div>
+
+      <div class="toolbar" id="toolbar">
+        <div class="tools" role="radiogroup" aria-label="訂正に使うパウリ演算子">
+          <button class="tool tx active" data-p="1" title="キー 1 / x">X</button>
+          <button class="tool tz" data-p="2" title="キー 2 / z">Z</button>
+          <button class="tool ty" data-p="3" title="キー 3 / y">Y</button>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" id="btnClear" title="訂正をすべて消す">クリア</button>
+          <button class="btn ghost" id="btnLogical" title="論理演算子を表示">論理演算子</button>
+          <button class="btn ghost" id="btnMatrix" title="検査行列を表示">検査行列</button>
+          <button class="btn ghost" id="btnHint" title="キー h">ヒント(デコーダ)</button>
+          <button class="btn primary" id="btnSubmit" title="Enter">判定する</button>
+        </div>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="result" id="result" hidden></div>
+      <canvas id="matrix" hidden></canvas>
+    </div>
+
+    <aside class="lesson" id="lesson"></aside>
+  </section>
+
+  <!-- ===================== LAB ===================== -->
+  <section id="view-lab" class="view">
+    <div class="labwrap">
+      <div class="labintro">
+        <h2>しきい値ラボ — 符号容量ノイズでのモンテカルロ実験</h2>
+        <p>ゲームで使っているのと同じデコーダ (BP+OSD) で、物理エラー率 p に対する論理エラー率 p<sub>L</sub> を計測します。
+          符号距離 d を大きくすると、しきい値 p<sub>th</sub> より下では p<sub>L</sub> が指数的に下がり、上では逆に悪化します。
+          これが Google の Willow 実験 (Nature 2025) で示された「しきい値以下」の意味です (実機は測定エラーを含む回路ノイズなので、しきい値は ~1% と本ラボの値より低くなります)。</p>
+      </div>
+      <div class="labctl">
+        <label>実験 <select id="labFamily">
+          <option value="surf">回転サーフェスコード d = 3, 5, 7</option>
+          <option value="color">6.6.6 カラーコード d = 3, 5, 7</option>
+          <option value="rep">ビット反転反復符号 d = 3, 5, 7</option>
+          <option value="bb">BB符号 [[72,12,6]] / [[90,8,10]] / [[144,12,12]]</option>
+        </select></label>
+        <label>ノイズ <select id="labNoise">
+          <option value="depol">脱分極</option>
+          <option value="X">ビット反転のみ</option>
+        </select></label>
+        <label>試行回数/点 <select id="labShots">
+          <option>200</option><option selected>500</option><option>1000</option><option>3000</option>
+        </select></label>
+        <button class="btn primary" id="labRun">実行</button>
+        <button class="btn ghost" id="labStop" disabled>停止</button>
+        <span class="labprog" id="labProg"></span>
+      </div>
+      <div class="chartcard">
+        <div class="legend" id="labLegend"></div>
+        <div class="chartbox"><svg id="labChart"></svg><div class="tooltip" id="labTip" hidden></div></div>
+        <details class="tableview"><summary>数値表を見る</summary><div id="labTable"></div></details>
+        <p class="note" id="labNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REFS ===================== -->
+  <section id="view-refs" class="view">
+    <article class="refs" id="refs"></article>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modalcard" id="modalCard"></div>
+</div>
+
+<script>
+/*
+ * QEC core: GF(2) linear algebra, stabilizer codes, decoders.
+ * Works in the browser (window.QEC) and in Node (globalThis.QEC) for tests.
+ *
+ * Pauli operators on n qubits are stored in the binary symplectic form
+ * (x | z), each half a Uint8Array of length n.  Two Paulis commute iff
+ * x1·z2 + z1·x2 = 0 (mod 2).  Syndrome bit i of error E is the symplectic
+ * product of stabilizer generator i with E.
+ */
+(function (root) {
+  'use strict';
+
+  // ------------------------------------------------------------------
+  // GF(2) helpers (rows are Uint8Array of 0/1)
+  // ------------------------------------------------------------------
+  const zeros = n => new Uint8Array(n);
+  const xorInto = (a, b) => { for (let i = 0; i < a.length; i++) a[i] ^= b[i]; return a; };
+  const weightOf = v => { let w = 0; for (let i = 0; i < v.length; i++) w += v[i]; return w; };
+  const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s ^= a[i] & b[i]; return s; };
+  const isZero = v => { for (let i = 0; i < v.length; i++) if (v[i]) return false; return true; };
+
+  // Row-reduce a copy; returns {rows, pivots, rank}
+  function rref(M, ncols) {
+    const rows = M.map(r => Uint8Array.from(r));
+    const n = ncols ?? (rows[0] ? rows[0].length : 0);
+    const pivots = [];
+    let rk = 0;
+    for (let c = 0; c < n && rk < rows.length; c++) {
+      let p = -1;
+      for (let r = rk; r < rows.length; r++) if (rows[r][c]) { p = r; break; }
+      if (p < 0) continue;
+      if (p !== rk) { const t = rows[p]; rows[p] = rows[rk]; rows[rk] = t; }
+      for (let r = 0; r < rows.length; r++) if (r !== rk && rows[r][c]) xorInto(rows[r], rows[rk]);
+      pivots.push(c);
+      rk++;
+    }
+    return { rows: rows.slice(0, rk), pivots, rank: rk };
+  }
+  const rank = M => (M.length ? rref(M).rank : 0);
+
+  // Incremental span membership: keeps an echelon basis.
+  class Span {
+    constructor(len) { this.len = len; this.basis = []; this.piv = []; }
+    reduce(v) {
+      const w = Uint8Array.from(v);
+      for (let i = 0; i < this.basis.length; i++) if (w[this.piv[i]]) xorInto(w, this.basis[i]);
+      return w;
+    }
+    contains(v) { return isZero(this.reduce(v)); }
+    add(v) {
+      const w = this.reduce(v);
+      const p = w.indexOf(1);
+      if (p < 0) return false;
+      for (let i = 0; i < this.basis.length; i++) if (this.basis[i][p]) xorInto(this.basis[i], w);
+      this.basis.push(w); this.piv.push(p);
+      return true;
+    }
+  }
+
+  // Kernel (null space) basis of M (rows) with ncols columns.
+  function kernel(M, ncols) {
+    const { rows, pivots } = rref(M, ncols);
+    const isPiv = new Uint8Array(ncols);
+    pivots.forEach(c => (isPiv[c] = 1));
+    const basis = [];
+    for (let f = 0; f < ncols; f++) {
+      if (isPiv[f]) continue;
+      const v = zeros(ncols);
+      v[f] = 1;
+      for (let r = 0; r < rows.length; r++) if (rows[r][f]) v[pivots[r]] = 1;
+      basis.push(v);
+    }
+    return basis;
+  }
+
+  // ------------------------------------------------------------------
+  // Pauli helpers
+  // ------------------------------------------------------------------
+  const P = { I: 0, X: 1, Z: 2, Y: 3 }; // bit0 = x, bit1 = z
+  const PNAME = ['I', 'X', 'Z', 'Y'];
+  function pauliVec(n) { return { x: zeros(n), z: zeros(n) }; }
+  function pauliGet(e, i) { return e.x[i] | (e.z[i] << 1); }
+  function pauliApply(e, i, p) { e.x[i] ^= p & 1; e.z[i] ^= (p >> 1) & 1; }
+  function pauliWeight(e) { let w = 0; for (let i = 0; i < e.x.length; i++) w += (e.x[i] | e.z[i]); return w; }
+  function pauliClone(e) { return { x: Uint8Array.from(e.x), z: Uint8Array.from(e.z) }; }
+  function pauliMul(a, b) { return { x: xorInto(Uint8Array.from(a.x), b.x), z: xorInto(Uint8Array.from(a.z), b.z) }; }
+  const symp = (a, b) => dot(a.x, b.z) ^ dot(a.z, b.x);
+  const toFlat = e => { const n = e.x.length, v = zeros(2 * n); v.set(e.x, 0); v.set(e.z, n); return v; };
+  const fromFlat = v => { const n = v.length / 2; return { x: v.slice(0, n), z: v.slice(n) }; };
+  function pauliString(e) { let s = ''; for (let i = 0; i < e.x.length; i++) s += PNAME[pauliGet(e, i)]; return s; }
+  function parsePauli(str) {
+    const e = pauliVec(str.length);
+    for (let i = 0; i < str.length; i++) pauliApply(e, i, P[str[i]] || 0);
+    return e;
+  }
+
+  // ------------------------------------------------------------------
+  // Stabilizer code object
+  // ------------------------------------------------------------------
+  // stabs: [{x, z, kind:'X'|'Z'|'M', pos:[x,y], poly?:[[x,y],..], face?:int}]
+  // qubits: [{pos:[x,y], label?}]
+  class Code {
+    constructor(opts) {
+      Object.assign(this, opts);
+      this.n = this.qubits.length;
+      this.m = this.stabs.length;
+      const S = this.stabs.map(s => toFlat(s));
+      this.stabSpan = new Span(2 * this.n);
+      S.forEach(v => this.stabSpan.add(v));
+      this.rankS = this.stabSpan.basis.length;
+      this.k = this.n - this.rankS;
+      this.css = this.stabs.every(s => isZero(s.x) || isZero(s.z));
+      // adjacency: qubit -> stabilizer indices
+      this.qubitStabs = Array.from({ length: this.n }, () => []);
+      this.stabSupport = this.stabs.map((s, j) => {
+        const sup = [];
+        for (let i = 0; i < this.n; i++) if (s.x[i] || s.z[i]) { sup.push(i); this.qubitStabs[i].push(j); }
+        return sup;
+      });
+      // binary parity-check for decoding: syndrome = Hdec · [ex | ez]
+      // stab (sx|sz) anticommutes with (ex|ez) iff sx·ez + sz·ex = 1
+      this.Hdec = this.stabs.map(s => { const r = zeros(2 * this.n); r.set(s.z, 0); r.set(s.x, this.n); return r; });
+      this._logicals = null;
+    }
+    commutationErrors() {
+      const bad = [];
+      for (let i = 0; i < this.m; i++) for (let j = i + 1; j < this.m; j++) if (symp(this.stabs[i], this.stabs[j])) bad.push([i, j]);
+      return bad;
+    }
+    syndrome(e) {
+      const s = zeros(this.m);
+      for (let j = 0; j < this.m; j++) {
+        const st = this.stabs[j];
+        let b = 0;
+        for (const i of this.stabSupport[j]) b ^= (st.x[i] & e.z[i]) ^ (st.z[i] & e.x[i]);
+        s[j] = b;
+      }
+      return s;
+    }
+    isStabilizer(e) { return this.stabSpan.contains(toFlat(e)); }
+    // Symplectic basis of logical operators: [{X: pauli, Z: pauli}] (length k)
+    logicals() {
+      if (this._logicals) return this._logicals;
+      const n = this.n;
+      let L = [];
+      if (this.css) {
+        const Hx = this.stabs.filter(s => !isZero(s.x)).map(s => s.x);
+        const Hz = this.stabs.filter(s => !isZero(s.z)).map(s => s.z);
+        const pick = (ker, rowsp) => {
+          const sp = new Span(n); rowsp.forEach(r => sp.add(r));
+          const out = [];
+          for (const v of ker) if (sp.add(v)) out.push(v);
+          return out;
+        };
+        const lx = pick(kernel(Hz, n), Hx).map(v => ({ x: v, z: zeros(n) }));
+        const lz = pick(kernel(Hx, n), Hz).map(v => ({ x: zeros(n), z: v }));
+        L = symplecticPairs(lx, lz);
+      } else {
+        // normalizer = kernel of swapped stabilizer matrix
+        const Sw = this.stabs.map(s => { const r = zeros(2 * n); r.set(s.z, 0); r.set(s.x, n); return r; });
+        const N = kernel(Sw, 2 * n);
+        const sp = new Span(2 * n); this.stabs.forEach(s => sp.add(toFlat(s)));
+        const extra = [];
+        for (const v of N) if (sp.add(v)) extra.push(fromFlat(v));
+        L = symplecticPairs(extra, []);
+      }
+      // shorten each logical by greedy multiplication with stabilizers (display only)
+      for (const pr of L) { pr.X = this.reduceWeight(pr.X); pr.Z = this.reduceWeight(pr.Z); }
+      this._logicals = L;
+      return L;
+    }
+    reduceWeight(op) {
+      let cur = pauliClone(op), w = pauliWeight(cur), improved = true, guard = 0;
+      while (improved && guard++ < 50) {
+        improved = false;
+        for (const s of this.stabs) {
+          const t = pauliMul(cur, s), tw = pauliWeight(t);
+          if (tw < w) { cur = t; w = tw; improved = true; }
+        }
+      }
+      return cur;
+    }
+    // Classify residual R = E·C:  {ok, syndromeClear, logicalFlips:[{q, X:bool, Z:bool}]}
+    classify(residual) {
+      const syn = this.syndrome(residual);
+      if (!isZero(syn)) return { ok: false, syndromeClear: false, flips: [] };
+      if (this.isStabilizer(residual)) return { ok: true, syndromeClear: true, flips: [] };
+      const flips = [];
+      this.logicals().forEach((pr, q) => {
+        const fx = symp(residual, pr.Z), fz = symp(residual, pr.X); // anticommute with Z̄ => X̄ flip
+        if (fx || fz) flips.push({ q, X: !!fx, Z: !!fz });
+      });
+      return { ok: false, syndromeClear: true, flips };
+    }
+  }
+
+  // Given candidate logicals A (X-like) and B (Z-like) (may be mixed lists),
+  // produce k symplectic pairs via Gram–Schmidt.
+  function symplecticPairs(A, B) {
+    let pool = A.concat(B).map(pauliClone);
+    const pairs = [];
+    while (pool.length) {
+      // prefer an X-type first element (for CSS readability)
+      let ai = pool.findIndex(v => isZero(v.z));
+      if (ai < 0) ai = 0;
+      const a = pool.splice(ai, 1)[0];
+      const bi = pool.findIndex(v => symp(a, v));
+      if (bi < 0) continue; // should not happen for a valid logical set
+      const b = pool.splice(bi, 1)[0];
+      pool = pool.map(c => {
+        let r = c;
+        if (symp(r, b)) r = pauliMul(r, a);
+        if (symp(r, a)) r = pauliMul(r, b);
+        return r;
+      });
+      pairs.push({ X: a, Z: b });
+    }
+    return pairs;
+  }
+
+  // ------------------------------------------------------------------
+  // Code constructions (all from the literature; see refs in levels.js)
+  // ------------------------------------------------------------------
+  function stabFrom(n, xs, zs, extra) {
+    const s = { x: zeros(n), z: zeros(n) };
+    (xs || []).forEach(i => (s.x[i] = 1));
+    (zs || []).forEach(i => (s.z[i] = 1));
+    s.kind = xs && xs.length && zs && zs.length ? 'M' : (xs && xs.length ? 'X' : 'Z');
+    return Object.assign(s, extra || {});
+  }
+  const centroid = pts => [pts.reduce((a, p) => a + p[0], 0) / pts.length, pts.reduce((a, p) => a + p[1], 0) / pts.length];
+
+  // Repetition code: d qubits on a line. basis 'Z' => Z_iZ_{i+1} checks (bit-flip code)
+  function repetition(d, basis = 'Z') {
+    const qubits = Array.from({ length: d }, (_, i) => ({ pos: [i * 2, 0] }));
+    const stabs = [];
+    for (let i = 0; i < d - 1; i++) {
+      const sup = [i, i + 1];
+      stabs.push(stabFrom(d, basis === 'X' ? sup : [], basis === 'Z' ? sup : [], { pos: [i * 2 + 1, 1.1], style: 'node' }));
+    }
+    // classical distance d against one error type only (quantum distance is 1)
+    return new Code({ id: `rep${basis}${d}`, name: `${d}量子ビット${basis === 'Z' ? 'ビット反転' : '位相反転'}反復符号`, params: [d, 1, d], qubits, stabs, layout: 'line', protects: basis === 'Z' ? 'X' : 'Z' });
+  }
+
+  // Shor [[9,1,3]] (Shor 1995)
+  function shor9() {
+    const n = 9, qubits = [];
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) qubits.push({ pos: [c * 2.2, r * 2.4] });
+    const stabs = [];
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) {
+      const a = r * 3 + c;
+      stabs.push(stabFrom(n, [], [a, a + 1], { pos: [c * 2.2 + 1.1, r * 2.4 + 0.75], style: 'node' }));
+    }
+    for (let r = 0; r < 2; r++) {
+      const sup = []; for (let c = 0; c < 3; c++) sup.push(r * 3 + c, (r + 1) * 3 + c);
+      stabs.push(stabFrom(n, sup, [], { pos: [-1.6, r * 2.4 + 1.2], style: 'node' }));
+    }
+    return new Code({ id: 'shor9', name: 'Shor 9量子ビット符号', params: [9, 1, 3], qubits, stabs });
+  }
+
+  // [[5,1,3]] perfect code: cyclic shifts of XZZXI (Laflamme et al. 1996; Bennett et al. 1996)
+  function fiveQubit() {
+    const n = 5, R = 2.6;
+    const qubits = Array.from({ length: n }, (_, i) => {
+      const t = -Math.PI / 2 + (2 * Math.PI * i) / n;
+      return { pos: [R * Math.cos(t), R * Math.sin(t)] };
+    });
+    const base = 'XZZXI', stabs = [];
+    for (let s = 0; s < 4; s++) {
+      const str = base.slice(n - s) + base.slice(0, n - s);
+      const st = parsePauli(str);
+      const t = -Math.PI / 2 + (2 * Math.PI * (s + 1.5)) / n;
+      stabs.push(Object.assign(st, { kind: 'M', label: str, pos: [0.95 * Math.cos(t), 0.95 * Math.sin(t)], style: 'node' }));
+    }
+    return new Code({ id: 'five', name: '[[5,1,3]] 完全符号', params: [5, 1, 3], qubits, stabs });
+  }
+
+  // Triangular 6.6.6 colour code of distance d (Bombin & Martin-Delgado 2006).
+  // d=3 is the Steane [[7,1,3]] code.
+  function colorCode(d) {
+    const N = (3 * (d - 1)) / 2;
+    const col = (a, b) => ((((a - b + 1) % 3) + 3) % 3);
+    const pos = (a, b) => [(a + b / 2) * 1.6, -(b * Math.sqrt(3) / 2) * 1.6];
+    const qkey = new Map(), qubits = [];
+    for (let b = N; b >= 0; b--) for (let a = 0; a + b <= N; a++) if (col(a, b) !== 0) { qkey.set(a + ',' + b, qubits.length); qubits.push({ pos: pos(a, b), ab: [a, b] }); }
+    const nb = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
+    const faces = [];
+    for (let b = N; b >= 0; b--) for (let a = 0; a + b <= N; a++) {
+      if (col(a, b) !== 0) continue;
+      const sup = nb.map(([da, db]) => qkey.get(a + da + ',' + (b + db))).filter(v => v !== undefined);
+      if (sup.length < 4) continue;
+      // polygon ordered by angle around the face centre
+      const c = pos(a, b);
+      const ordered = sup.slice().sort((i, j) => Math.atan2(qubits[i].pos[1] - c[1], qubits[i].pos[0] - c[0]) - Math.atan2(qubits[j].pos[1] - c[1], qubits[j].pos[0] - c[0]));
+      const poly = ordered.map(i => qubits[i].pos);
+      // face colour: proper 3-colouring of the colour-0 sublattice (neighbours differ in b by ±1, ±2)
+      faces.push({ sup, poly, centre: centroid(poly), color: ['r', 'g', 'b'][b % 3] });
+    }
+    const n = qubits.length, stabs = [];
+    faces.forEach((f, fi) => {
+      const [cx, cy] = f.centre, off = 0.32;
+      stabs.push(stabFrom(n, f.sup, [], { pos: [cx - off, cy], face: fi, style: 'face' }));
+      stabs.push(stabFrom(n, [], f.sup, { pos: [cx + off, cy], face: fi, style: 'face' }));
+    });
+    const name = d === 3 ? 'Steane [[7,1,3]] (d=3 カラーコード)' : `6.6.6 カラーコード d=${d}`;
+    return new Code({ id: 'color' + d, name, params: [n, 1, d], qubits, stabs, faces });
+  }
+
+  // Rotated surface code distance d (Bombin & Martin-Delgado 2007; Horsman et al. 2012)
+  function rotatedSurface(d) {
+    const n = d * d, qubits = [];
+    const q = (r, c) => r * d + c;
+    for (let r = 0; r < d; r++) for (let c = 0; c < d; c++) qubits.push({ pos: [c * 2, r * 2], rc: [r, c] });
+    const stabs = [];
+    for (let r = -1; r < d; r++) for (let c = -1; c < d; c++) {
+      const isX = ((r + c) % 2 + 2) % 2 === 0;
+      const cells = [[r, c], [r, c + 1], [r + 1, c + 1], [r + 1, c]].filter(([a, b]) => a >= 0 && a < d && b >= 0 && b < d);
+      const topBottom = r === -1 || r === d - 1, leftRight = c === -1 || c === d - 1;
+      if (cells.length === 4) {/* bulk */} else if (cells.length === 2) {
+        if (topBottom && !isX) continue; // X-type boundary checks on top/bottom
+        if (leftRight && isX) continue; // Z-type boundary checks on left/right
+      } else continue;
+      const sup = cells.map(([a, b]) => q(a, b));
+      let poly = cells.map(([a, b]) => [b * 2, a * 2]);
+      if (cells.length === 2) {
+        // half-disc bulge outward
+        const [p1, p2] = poly, mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        const out = r === -1 ? [0, -1] : r === d - 1 ? [0, 1] : c === -1 ? [-1, 0] : [1, 0];
+        // half-disc bulging outward: quadratic Bézier with control point 2 units out
+        const ctrl = [mid[0] + out[0] * 2, mid[1] + out[1] * 2];
+        poly = [p1, ctrl, p2];
+        poly.curve = true;
+      }
+      const pos = cells.length === 4 ? [c * 2 + 1, r * 2 + 1] : [(poly[0][0] + poly[2][0]) / 2 + (poly[1][0] - (poly[0][0] + poly[2][0]) / 2) * 0.45, (poly[0][1] + poly[2][1]) / 2 + (poly[1][1] - (poly[0][1] + poly[2][1]) / 2) * 0.45];
+      stabs.push(stabFrom(n, isX ? sup : [], isX ? [] : sup, { pos, poly, curve: !!poly.curve, style: 'plaq' }));
+    }
+    return new Code({ id: 'surf' + d, name: `回転サーフェスコード d=${d}`, params: [n, 1, d], qubits, stabs });
+  }
+
+  // XZZX surface code (Bonilla Ataides et al. 2021): Hadamard on one checkerboard
+  // sublattice of the rotated surface code -> every bulk check reads XZZX.
+  function xzzxSurface(d) {
+    const base = rotatedSurface(d);
+    const stabs = base.stabs.map(s => {
+      const t = { x: Uint8Array.from(s.x), z: Uint8Array.from(s.z), pos: s.pos, poly: s.poly, curve: s.curve, style: 'plaq', kind: 'M' };
+      for (let i = 0; i < base.n; i++) {
+        const [r, c] = base.qubits[i].rc;
+        if ((r + c) % 2 === 1) { const a = t.x[i]; t.x[i] = t.z[i]; t.z[i] = a; }
+      }
+      return t;
+    });
+    return new Code({ id: 'xzzx' + d, name: `XZZX サーフェスコード d=${d}`, params: [d * d, 1, d], qubits: base.qubits, stabs });
+  }
+
+  // Hypergraph product (Tillich & Zémor 2009): Hx=[H1⊗I | I⊗H2^T], Hz=[I⊗H2 | H1^T⊗I]
+  function hypergraphProduct(H1, H2, meta) {
+    const m1 = H1.length, n1 = H1[0].length, m2 = H2.length, n2 = H2[0].length;
+    const nA = n1 * n2, n = nA + m1 * m2;
+    const qA = (a, b) => a * n2 + b, qB = (c, e) => nA + c * m2 + e;
+    const qubits = [];
+    for (let a = 0; a < n1; a++) for (let b = 0; b < n2; b++) qubits.push({ pos: [b * 1.6, a * 1.6] });
+    for (let c = 0; c < m1; c++) for (let e = 0; e < m2; e++) qubits.push({ pos: [(n2 + e) * 1.6 + 0.8, (n1 + c) * 1.6 + 0.8] });
+    const stabs = [];
+    for (let c = 0; c < m1; c++) for (let b = 0; b < n2; b++) {
+      const sup = [];
+      for (let a = 0; a < n1; a++) if (H1[c][a]) sup.push(qA(a, b));
+      for (let e = 0; e < m2; e++) if (H2[e][b]) sup.push(qB(c, e));
+      stabs.push(stabFrom(n, sup, [], { pos: [b * 1.6, (n1 + c) * 1.6 + 0.8], style: 'node' }));
+    }
+    for (let a = 0; a < n1; a++) for (let e = 0; e < m2; e++) {
+      const sup = [];
+      for (let b = 0; b < n2; b++) if (H2[e][b]) sup.push(qA(a, b));
+      for (let c = 0; c < m1; c++) if (H1[c][a]) sup.push(qB(c, e));
+      stabs.push(stabFrom(n, [], sup, { pos: [(n2 + e) * 1.6 + 0.8, a * 1.6], style: 'node' }));
+    }
+    return new Code(Object.assign({ qubits, stabs, sparseEdges: true }, meta));
+  }
+
+  // Bivariate bicycle codes (Bravyi et al., Nature 627, 778 (2024)).
+  // x = S_l ⊗ I_m, y = I_l ⊗ S_m ; A, B = sums of three monomials ; Hx=[A|B], Hz=[B^T|A^T]
+  function bivariateBicycle(l, m, Aterms, Bterms, meta) {
+    const L = l * m, n = 2 * L;
+    const idx = (i, j) => (((i % l) + l) % l) * m + (((j % m) + m) % m);
+    // monomial x^a y^b maps basis (i,j) -> (i+a, j+b)
+    const matOf = terms => { // returns list of columns hit for each row r: row r=(i,j) has 1 at column (i+a,j+b)
+      return Array.from({ length: L }, (_, r) => {
+        const i = Math.floor(r / m), j = r % m;
+        return terms.map(([a, b]) => idx(i + a, j + b));
+      });
+    };
+    const A = matOf(Aterms), B = matOf(Bterms);
+    const qubits = [];
+    // layout as in Bravyi et al.: each torus cell holds X-check, L, R, Z-check (x index horizontal)
+    const cell = 2.2;
+    for (let r = 0; r < L; r++) { const i = Math.floor(r / m), j = r % m; qubits.push({ pos: [i * cell * 2 + cell, j * cell * 2], label: 'L' }); }
+    for (let r = 0; r < L; r++) { const i = Math.floor(r / m), j = r % m; qubits.push({ pos: [i * cell * 2, j * cell * 2 + cell], label: 'R' }); }
+    const stabs = [];
+    // X checks: row r of [A|B]
+    for (let r = 0; r < L; r++) {
+      const i = Math.floor(r / m), j = r % m;
+      const sup = A[r].map(c => c).concat(B[r].map(c => L + c));
+      stabs.push(stabFrom(n, sup, [], { pos: [i * cell * 2, j * cell * 2], style: 'node' }));
+    }
+    // Z checks: row r of [B^T | A^T]  -> (B^T)[r][c] = B[c][r]
+    const BT = Array.from({ length: L }, () => []), AT = Array.from({ length: L }, () => []);
+    for (let r = 0; r < L; r++) { B[r].forEach(c => BT[c].push(r)); A[r].forEach(c => AT[c].push(r)); }
+    for (let r = 0; r < L; r++) {
+      const i = Math.floor(r / m), j = r % m;
+      const sup = BT[r].concat(AT[r].map(c => L + c));
+      stabs.push(stabFrom(n, [], sup, { pos: [i * cell * 2 + cell, j * cell * 2 + cell], style: 'node' }));
+    }
+    return new Code(Object.assign({ qubits, stabs, sparseEdges: true, torus: { l, m, cell } }, meta));
+  }
+
+  const HAMMING = [
+    [1, 0, 1, 0, 1, 0, 1],
+    [0, 1, 1, 0, 0, 1, 1],
+    [0, 0, 0, 1, 1, 1, 1],
+  ];
+
+  const CODES = {
+    rep3: () => repetition(3, 'Z'),
+    rep5: () => repetition(5, 'Z'),
+    rep7: () => repetition(7, 'Z'),
+    phase3: () => repetition(3, 'X'),
+    phase5: () => repetition(5, 'X'),
+    shor9,
+    five: fiveQubit,
+    steane: () => colorCode(3),
+    color5: () => colorCode(5),
+    color7: () => colorCode(7),
+    surf3: () => rotatedSurface(3),
+    surf5: () => rotatedSurface(5),
+    surf7: () => rotatedSurface(7),
+    xzzx5: () => xzzxSurface(5),
+    xzzx7: () => xzzxSurface(7),
+    hgpHam: () => hypergraphProduct(HAMMING, HAMMING, { id: 'hgpHam', name: 'ハイパーグラフ積符号 HGP(Hamming⊗Hamming)', params: [58, 16, 3] }),
+    hgpRep: () => hypergraphProduct([[1, 1, 0], [0, 1, 1]], [[1, 1, 0], [0, 1, 1]], { id: 'hgpRep', name: 'HGP(反復符号⊗反復符号) = サーフェスコード', params: [13, 1, 3] }),
+    bb72: () => bivariateBicycle(6, 6, [[3, 0], [0, 1], [0, 2]], [[0, 3], [1, 0], [2, 0]], { id: 'bb72', name: '二変数バイシクル符号 [[72,12,6]]', params: [72, 12, 6] }),
+    bb90: () => bivariateBicycle(15, 3, [[9, 0], [0, 1], [0, 2]], [[0, 0], [2, 0], [7, 0]], { id: 'bb90', name: '二変数バイシクル符号 [[90,8,10]]', params: [90, 8, 10] }),
+    bb108: () => bivariateBicycle(9, 6, [[3, 0], [0, 1], [0, 2]], [[0, 3], [1, 0], [2, 0]], { id: 'bb108', name: '二変数バイシクル符号 [[108,8,10]]', params: [108, 8, 10] }),
+    gross: () => bivariateBicycle(12, 6, [[3, 0], [0, 1], [0, 2]], [[0, 3], [1, 0], [2, 0]], { id: 'gross', name: 'グロス符号 [[144,12,12]]', params: [144, 12, 12] }),
+  };
+  const codeCache = {};
+  function getCode(id) { return codeCache[id] || (codeCache[id] = CODES[id]()); }
+
+  // ------------------------------------------------------------------
+  // Noise
+  // ------------------------------------------------------------------
+  // model: {type:'X'|'Z'|'depol'|'biasZ', p, eta?}
+  function pauliProbs(model) {
+    const p = model.p;
+    switch (model.type) {
+      case 'X': return { X: p, Y: 0, Z: 0 };
+      case 'Z': return { X: 0, Y: 0, Z: p };
+      case 'biasZ': { const eta = model.eta ?? 100; const pz = p * eta / (eta + 1), px = p / (2 * (eta + 1)); return { X: px, Y: px, Z: pz }; }
+      default: return { X: p / 3, Y: p / 3, Z: p / 3 };
+    }
+  }
+  function samplePauli(probs, rng) {
+    const u = rng() * (probs.X + probs.Y + probs.Z);
+    return u < probs.X ? P.X : u < probs.X + probs.Y ? P.Y : P.Z;
+  }
+  function sampleIID(n, model, rng = Math.random) {
+    const e = pauliVec(n), pr = pauliProbs(model), tot = pr.X + pr.Y + pr.Z;
+    for (let i = 0; i < n; i++) if (rng() < tot) pauliApply(e, i, samplePauli(pr, rng));
+    return e;
+  }
+  function sampleCount(n, count, model, rng = Math.random) {
+    const e = pauliVec(n), pr = pauliProbs(Object.assign({}, model, { p: 0.3 }));
+    const idx = Array.from({ length: n }, (_, i) => i);
+    for (let i = 0; i < count; i++) {
+      const j = i + Math.floor(rng() * (n - i));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+      pauliApply(e, idx[i], samplePauli(pr, rng));
+    }
+    return e;
+  }
+
+  // ------------------------------------------------------------------
+  // Decoders
+  // ------------------------------------------------------------------
+  // Binary BP (normalised min-sum) + OSD-CS  (Panteleev & Kalachev 2021; Roffe et al. 2020)
+  // H: array of Uint8Array rows (m x N), s: syndrome, prior: Float64Array of per-bit flip probabilities.
+  function makeTanner(H) {
+    const m = H.length, N = H[0].length;
+    const chk = [], vars = Array.from({ length: N }, () => []);
+    for (let c = 0; c < m; c++) {
+      const row = [];
+      for (let v = 0; v < N; v++) if (H[c][v]) { vars[v].push([c, row.length]); row.push(v); }
+      chk.push(row);
+    }
+    return { m, N, chk, vars, H };
+  }
+
+  function bpDecode(T, s, prior, maxIter = 40, alpha = 0.625) {
+    const { m, N, chk, vars } = T;
+    const llr0 = new Float64Array(N);
+    for (let v = 0; v < N; v++) { const p = Math.min(Math.max(prior[v], 1e-12), 0.5 - 1e-9); llr0[v] = Math.log((1 - p) / p); }
+    const v2c = chk.map(row => Float64Array.from(row, v => llr0[v]));
+    const c2v = chk.map(row => new Float64Array(row.length));
+    const post = new Float64Array(N), hard = new Uint8Array(N);
+    for (let it = 0; it < maxIter; it++) {
+      for (let c = 0; c < m; c++) {
+        const row = v2c[c], L = row.length;
+        let sgn = s[c] ? -1 : 1, min1 = Infinity, min2 = Infinity, mi = -1;
+        for (let k = 0; k < L; k++) {
+          const a = row[k]; if (a < 0) sgn = -sgn;
+          const b = Math.abs(a);
+          if (b < min1) { min2 = min1; min1 = b; mi = k; } else if (b < min2) min2 = b;
+        }
+        for (let k = 0; k < L; k++) {
+          const a = row[k], sk = a < 0 ? -1 : 1;
+          c2v[c][k] = alpha * sgn * sk * (k === mi ? min2 : min1);
+        }
+      }
+      for (let v = 0; v < N; v++) {
+        let t = llr0[v];
+        for (const [c, k] of vars[v]) t += c2v[c][k];
+        post[v] = t; hard[v] = t < 0 ? 1 : 0;
+      }
+      if (checkSyn(T, hard, s)) return { e: hard, post, converged: true, iters: it + 1 };
+      for (let c = 0; c < m; c++) { const row = chk[c]; for (let k = 0; k < row.length; k++) v2c[c][k] = post[row[k]] - c2v[c][k]; }
+    }
+    return { e: hard, post, converged: false, iters: maxIter };
+  }
+  function checkSyn(T, e, s) {
+    for (let c = 0; c < T.m; c++) { let b = 0; for (const v of T.chk[c]) b ^= e[v]; if (b !== s[c]) return false; }
+    return true;
+  }
+
+  // OSD with combination sweep of order lambda.
+  function osd(T, s, post, prior, lambda = 8) {
+    const { m, N, H } = T;
+    const order = Array.from({ length: N }, (_, i) => i).sort((a, b) => post[a] - post[b]);
+    // eliminate on permuted columns; augmented with syndrome
+    const rows = H.map((r, i) => { const a = new Uint8Array(N + 1); for (let j = 0; j < N; j++) a[j] = r[order[j]]; a[N] = s[i]; return a; });
+    const piv = [];
+    let rk = 0;
+    for (let c = 0; c < N && rk < m; c++) {
+      let p = -1;
+      for (let r = rk; r < m; r++) if (rows[r][c]) { p = r; break; }
+      if (p < 0) continue;
+      if (p !== rk) { const t = rows[p]; rows[p] = rows[rk]; rows[rk] = t; }
+      for (let r = 0; r < m; r++) if (r !== rk && rows[r][c]) xorInto(rows[r], rows[rk]);
+      piv.push(c); rk++;
+    }
+    const isPiv = new Uint8Array(N); piv.forEach(c => (isPiv[c] = 1));
+    const nonPiv = []; for (let c = 0; c < N && nonPiv.length < lambda; c++) if (!isPiv[c]) nonPiv.push(c);
+    const cost = new Float64Array(N);
+    for (let j = 0; j < N; j++) { const p = Math.min(Math.max(prior[order[j]], 1e-12), 0.5); cost[j] = Math.log((1 - p) / p); }
+    const evalCand = flips => {
+      const e = new Uint8Array(N);
+      for (const f of flips) e[f] = 1;
+      for (let r = 0; r < rk; r++) {
+        let b = rows[r][N];
+        for (const f of flips) b ^= rows[r][f];
+        e[piv[r]] = b;
+      }
+      let w = 0; for (let j = 0; j < N; j++) if (e[j]) w += cost[j];
+      return { e, w };
+    };
+    let best = evalCand([]);
+    for (let a = 0; a < nonPiv.length; a++) {
+      const c1 = evalCand([nonPiv[a]]); if (c1.w < best.w) best = c1;
+      for (let b = a + 1; b < nonPiv.length; b++) { const c2 = evalCand([nonPiv[a], nonPiv[b]]); if (c2.w < best.w) best = c2; }
+    }
+    const out = new Uint8Array(N);
+    for (let j = 0; j < N; j++) if (best.e[j]) out[order[j]] = 1;
+    return out;
+  }
+
+  function bposd(T, s, prior, opts = {}) {
+    if (isZero(s)) return { e: new Uint8Array(T.N), method: 'trivial' };
+    const bp = bpDecode(T, s, prior, opts.maxIter ?? 40, opts.alpha ?? 0.625);
+    if (bp.converged) return { e: bp.e, method: 'BP' };
+    return { e: osd(T, s, bp.post, prior, opts.lambda ?? 8), method: 'BP+OSD' };
+  }
+
+  // Exhaustive minimum-cost Pauli search (exact for small codes / few errors)
+  function exhaustive(code, s, probs, maxW, budget = 800000) {
+    const n = code.n;
+    const cst = { 1: -Math.log(Math.max(probs.X, 1e-12)), 2: -Math.log(Math.max(probs.Z, 1e-12)), 3: -Math.log(Math.max(probs.Y, 1e-12)) };
+    const allowed = [1, 2, 3].filter(p => cst[p] < 25);
+    // per-qubit, per-Pauli syndrome masks as arrays of 32-bit words
+    const W = Math.ceil(code.m / 32);
+    const mask = Array.from({ length: n }, () => ({}));
+    for (let i = 0; i < n; i++) for (const p of allowed) {
+      const e = pauliVec(n); pauliApply(e, i, p);
+      const sy = code.syndrome(e), w = new Uint32Array(W);
+      for (let j = 0; j < code.m; j++) if (sy[j]) w[j >> 5] |= 1 << (j & 31);
+      mask[i][p] = w;
+    }
+    const target = new Uint32Array(W);
+    for (let j = 0; j < code.m; j++) if (s[j]) target[j >> 5] |= 1 << (j & 31);
+    let best = null, bestCost = Infinity, count = 0;
+    const cur = new Uint32Array(W), chosen = [];
+    const eq = () => { for (let k = 0; k < W; k++) if (cur[k] !== target[k]) return false; return true; };
+    function rec(start, depth, costSoFar) {
+      if (count++ > budget) return;
+      if (costSoFar >= bestCost) return;
+      if (eq()) { bestCost = costSoFar; best = chosen.slice(); return; }
+      if (depth === maxW) return;
+      for (let i = start; i < n; i++) for (const p of allowed) {
+        const mk = mask[i][p];
+        for (let k = 0; k < W; k++) cur[k] ^= mk[k];
+        chosen.push([i, p]);
+        rec(i + 1, depth + 1, costSoFar + cst[p]);
+        chosen.pop();
+        for (let k = 0; k < W; k++) cur[k] ^= mk[k];
+      }
+    }
+    rec(0, 0, 0);
+    if (!best) return null;
+    const e = pauliVec(n); best.forEach(([i, p]) => pauliApply(e, i, p));
+    return { e, complete: count <= budget };
+  }
+
+  // Generic decoder: returns {correction (pauli), method}
+  function decode(code, syndrome, model) {
+    const probs = pauliProbs(Object.assign({}, model, { p: Math.min(Math.max(model.p || 0.05, 0.005), 0.3) }));
+    if (isZero(syndrome)) return { correction: pauliVec(code.n), method: '自明' };
+    const t = Math.max(1, Math.floor((code.params[2] - 1) / 2));
+    const nAllowed = [probs.X, probs.Y, probs.Z].filter(x => x > 1e-9).length;
+    const cost = W => { let est = 0, comb = 1; for (let w = 1; w <= W; w++) { comb = comb * (code.n - w + 1) / w; est += comb * Math.pow(nAllowed, w); } return est; };
+    const W = cost(t + 1) < 400000 ? t + 1 : cost(t) < 400000 ? t : 0;
+    // exact search: optimal for fixed-count puzzles (weight <= t); for i.i.d. noise BP+OSD
+    // (which accounts for degeneracy better than a single min-weight Pauli) is used on larger codes
+    const exactOK = model.mode !== 'iid' || code.n <= 13;
+    if (model.type !== 'biasZ' && W > 0 && exactOK) {
+      const r = exhaustive(code, syndrome, probs, W, 600000);
+      if (r && r.complete) return { correction: r.e, method: '最小重み全探索 (厳密)' };
+    }
+    // binary BP+OSD on [ex | ez]
+    if (!code._tanner) code._tanner = makeTanner(code.Hdec);
+    const n = code.n, prior = new Float64Array(2 * n);
+    for (let i = 0; i < n; i++) { prior[i] = probs.X + probs.Y; prior[n + i] = probs.Z + probs.Y; }
+    const r = bposd(code._tanner, syndrome, prior);
+    return { correction: { x: r.e.slice(0, n), z: r.e.slice(n) }, method: r.method === 'BP' ? 'BP (確率伝播)' : 'BP+OSD' };
+  }
+
+  // ------------------------------------------------------------------
+  // Space-time repetition code with measurement errors
+  // (cf. Google Quantum AI, Nature 595, 383 (2021))
+  // ------------------------------------------------------------------
+  function spacetimeSample(d, rounds, p, q, rng = Math.random, forceCounts) {
+    // data errors occur before each round; measurement flips per round; final round = perfect data readout
+    const dataFlips = [], measFlips = [];
+    const data = new Uint8Array(d);
+    const synHist = [];
+    for (let t = 0; t < rounds; t++) {
+      const df = new Uint8Array(d), mf = new Uint8Array(d - 1);
+      for (let i = 0; i < d; i++) if (rng() < p) df[i] = 1;
+      if (t < rounds - 1) for (let i = 0; i < d - 1; i++) if (rng() < q) mf[i] = 1;
+      dataFlips.push(df); measFlips.push(mf);
+    }
+    if (forceCounts) {
+      // place exact counts of data / measurement faults at random space-time locations
+      dataFlips.forEach(r => r.fill(0)); measFlips.forEach(r => r.fill(0));
+      const place = (arrs, cnt, maxT, width) => {
+        let k = 0, g = 0;
+        while (k < cnt && g++ < 1000) { const t = Math.floor(rng() * maxT), i = Math.floor(rng() * width); if (!arrs[t][i]) { arrs[t][i] = 1; k++; } }
+      };
+      place(dataFlips, forceCounts.data, rounds, d);
+      place(measFlips, forceCounts.meas, rounds - 1, d - 1);
+    }
+    for (let t = 0; t < rounds; t++) {
+      xorInto(data, dataFlips[t]);
+      const s = new Uint8Array(d - 1);
+      for (let i = 0; i < d - 1; i++) s[i] = data[i] ^ data[i + 1] ^ measFlips[t][i];
+      synHist.push(s);
+    }
+    const det = synHist.map((s, t) => t === 0 ? Uint8Array.from(s) : xorInto(Uint8Array.from(s), synHist[t - 1]));
+    return { d, rounds, dataFlips, measFlips, synHist, det, finalData: data };
+  }
+
+  // Exact minimum-weight perfect matching on detection events (bitmask DP).
+  function spacetimeMWPM(st) {
+    const ev = [];
+    st.det.forEach((row, t) => row.forEach((b, i) => b && ev.push([t, i])));
+    const K = ev.length, d = st.d;
+    if (K > 18) return null;
+    const bdist = i => Math.min(i + 1, d - 1 - i);
+    const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+    const memo = new Map();
+    function solve(mask) {
+      if (mask === 0) return { c: 0, pairs: [] };
+      if (memo.has(mask)) return memo.get(mask);
+      let i = 0; while (!(mask & (1 << i))) i++;
+      const rest = mask & ~(1 << i);
+      let best = { c: bdist(ev[i][1]) + solve(rest).c, pairs: [[i, -1]].concat(solve(rest).pairs) };
+      for (let j = i + 1; j < K; j++) if (rest & (1 << j)) {
+        const sub = solve(rest & ~(1 << j)), c = dist(ev[i], ev[j]) + sub.c;
+        if (c < best.c) best = { c, pairs: [[i, j]].concat(sub.pairs) };
+      }
+      memo.set(mask, best);
+      return best;
+    }
+    const sol = solve((1 << K) - 1);
+    const corr = new Uint8Array(d);
+    for (const [a, b] of sol.pairs) {
+      if (b < 0) {
+        const i = ev[a][1];
+        if (i + 1 <= d - 1 - i) for (let q = 0; q <= i; q++) corr[q] ^= 1;
+        else for (let q = i + 1; q < d; q++) corr[q] ^= 1;
+      } else {
+        const i = Math.min(ev[a][1], ev[b][1]), j = Math.max(ev[a][1], ev[b][1]);
+        for (let q = i + 1; q <= j; q++) corr[q] ^= 1;
+      }
+    }
+    return { correction: corr, pairs: sol.pairs.map(([a, b]) => [ev[a], b < 0 ? null : ev[b]]), weight: sol.c };
+  }
+
+  // mulberry32 PRNG for reproducible simulations
+  function rngFrom(seed) {
+    let a = seed >>> 0;
+    return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+
+  root.QEC = Object.assign(root.QEC || {}, {
+    zeros, xorInto, weightOf, dot, isZero, rref, rank, kernel, Span,
+    P, PNAME, pauliVec, pauliGet, pauliApply, pauliWeight, pauliClone, pauliMul, pauliString, parsePauli, symp,
+    Code, CODES, getCode, repetition, shor9, fiveQubit, colorCode, rotatedSurface, xzzxSurface, hypergraphProduct, bivariateBicycle,
+    pauliProbs, sampleIID, sampleCount, makeTanner, bpDecode, osd, bposd, exhaustive, decode,
+    spacetimeSample, spacetimeMWPM, rngFrom,
+  });
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* Levels, lessons and references for QEC Puzzle. */
+(function (root) {
+  'use strict';
+
+  const REFS = {
+    shor95: 'P. W. Shor, “Scheme for reducing decoherence in quantum computer memory”, <i>Phys. Rev. A</i> 52, R2493 (1995).',
+    steane96: 'A. M. Steane, “Error correcting codes in quantum theory”, <i>Phys. Rev. Lett.</i> 77, 793 (1996).',
+    cs96: 'A. R. Calderbank &amp; P. W. Shor, “Good quantum error-correcting codes exist”, <i>Phys. Rev. A</i> 54, 1098 (1996).',
+    laflamme96: 'R. Laflamme, C. Miquel, J. P. Paz, W. H. Zurek, “Perfect quantum error correcting code”, <i>Phys. Rev. Lett.</i> 77, 198 (1996).',
+    bennett96: 'C. H. Bennett, D. P. DiVincenzo, J. A. Smolin, W. K. Wootters, “Mixed-state entanglement and quantum error correction”, <i>Phys. Rev. A</i> 54, 3824 (1996).',
+    knill97: 'E. Knill &amp; R. Laflamme, “Theory of quantum error-correcting codes”, <i>Phys. Rev. A</i> 55, 900 (1997).',
+    gottesman97: 'D. Gottesman, “Stabilizer codes and quantum error correction”, PhD thesis, Caltech (1997), arXiv:quant-ph/9705052.',
+    kitaev03: 'A. Yu. Kitaev, “Fault-tolerant quantum computation by anyons”, <i>Ann. Phys.</i> 303, 2 (2003), arXiv:quant-ph/9707021.',
+    dennis02: 'E. Dennis, A. Kitaev, A. Landahl, J. Preskill, “Topological quantum memory”, <i>J. Math. Phys.</i> 43, 4452 (2002), arXiv:quant-ph/0110143.',
+    bombin07: 'H. Bombin &amp; M. A. Martin-Delgado, “Optimal resources for topological two-dimensional stabilizer codes: Comparative study”, <i>Phys. Rev. A</i> 76, 012305 (2007).',
+    fowler12: 'A. G. Fowler, M. Mariantoni, J. M. Martinis, A. N. Cleland, “Surface codes: Towards practical large-scale quantum computation”, <i>Phys. Rev. A</i> 86, 032324 (2012), arXiv:1208.0928.',
+    terhal15: 'B. M. Terhal, “Quantum error correction for quantum memories”, <i>Rev. Mod. Phys.</i> 87, 307 (2015).',
+    google21: 'Google Quantum AI, “Exponential suppression of bit or phase errors with cyclic error correction”, <i>Nature</i> 595, 383 (2021).',
+    google23: 'Google Quantum AI, “Suppressing quantum errors by scaling a surface code logical qubit”, <i>Nature</i> 614, 676 (2023).',
+    google25: 'Google Quantum AI and Collaborators, “Quantum error correction below the surface code threshold”, <i>Nature</i> 638, 920 (2025), arXiv:2408.13687.',
+    xzzx21: 'J. P. Bonilla Ataides, D. K. Tuckett, S. D. Bartlett, S. T. Flammia, B. J. Brown, “The XZZX surface code”, <i>Nat. Commun.</i> 12, 2172 (2021), arXiv:2009.07851.',
+    bombin06: 'H. Bombin &amp; M. A. Martin-Delgado, “Topological quantum distillation”, <i>Phys. Rev. Lett.</i> 97, 180501 (2006), arXiv:quant-ph/0605138.',
+    lacroix25: 'N. Lacroix et al. (Google Quantum AI), “Scaling and logic in the color code on a superconducting quantum processor”, <i>Nature</i> (2025), arXiv:2412.14256.',
+    bluvstein24: 'D. Bluvstein et al., “Logical quantum processor based on reconfigurable atom arrays”, <i>Nature</i> 626, 58 (2024), arXiv:2312.03982.',
+    tillich14: 'J.-P. Tillich &amp; G. Zémor, “Quantum LDPC codes with positive rate and minimum distance proportional to the square root of the blocklength”, <i>IEEE Trans. Inf. Theory</i> 60, 1193 (2014), arXiv:0903.0566.',
+    kovalev13: 'A. A. Kovalev &amp; L. P. Pryadko, “Quantum Kronecker sum-product low-density parity-check codes with finite rate”, <i>Phys. Rev. A</i> 88, 012311 (2013).',
+    bravyi24: 'S. Bravyi, A. W. Cross, J. M. Gambetta, D. Maslov, P. Rall, T. J. Yoder, “High-threshold and low-overhead fault-tolerant quantum memory”, <i>Nature</i> 627, 778 (2024), arXiv:2308.07915.',
+    yoder25: 'T. J. Yoder et al., “Tour de gross: A modular quantum computer based on bivariate bicycle codes”, arXiv:2506.03094 (2025).',
+    xu24: 'Q. Xu et al., “Constant-overhead fault-tolerant quantum computation with reconfigurable atom arrays”, <i>Nat. Phys.</i> 20, 1084 (2024), arXiv:2308.08648.',
+    panteleev21: 'P. Panteleev &amp; G. Kalachev, “Degenerate quantum LDPC codes with good finite length performance”, <i>Quantum</i> 5, 585 (2021), arXiv:1904.02703.',
+    panteleev22: 'P. Panteleev &amp; G. Kalachev, “Asymptotically good quantum and locally testable classical LDPC codes”, <i>Proc. STOC 2022</i>, arXiv:2111.03654.',
+    roffe20: 'J. Roffe, D. R. White, S. Burton, E. Campbell, “Decoding across the quantum low-density parity-check code landscape”, <i>Phys. Rev. Research</i> 2, 043423 (2020), arXiv:2005.07016.',
+    breuckmann21: 'N. P. Breuckmann &amp; J. N. Eberhardt, “Quantum low-density parity-check codes”, <i>PRX Quantum</i> 2, 040101 (2021).',
+    edmonds65: 'J. Edmonds, “Paths, trees, and flowers”, <i>Can. J. Math.</i> 17, 449 (1965).',
+    higgott23: 'O. Higgott &amp; C. Gidney, “Sparse Blossom: correcting a million errors per core second with minimum-weight matching”, arXiv:2303.15933.',
+    hastings21: 'M. B. Hastings &amp; J. Haah, “Dynamically generated logical qubits”, <i>Quantum</i> 5, 564 (2021).',
+  };
+
+  const LEGEND = {
+    std: `<div class="legendrow">
+      <span><i class="sw" style="background:var(--z)"></i>Z型チェック: X/Y エラーを検出</span>
+      <span><i class="sw" style="background:var(--x)"></i>X型チェック: Z/Y エラーを検出</span>
+      <span><i class="sw" style="background:var(--m)"></i>混合型 (XZZX など)</span></div>`,
+  };
+
+  const CHAPTERS = ['第1章 基礎: 反復符号から', '第2章 スタビライザー符号', '第3章 サーフェスコード', '第4章 カラーコード', '第5章 qLDPC 符号'];
+
+  const L = [];
+  // ---------------- Chapter 1 ----------------
+  L.push({
+    id: '1-1', chap: 0, title: 'ビット反転と3量子ビット反復符号', code: 'rep3',
+    noise: { type: 'X', mode: 'count', count: 1 }, rounds: 3, tools: [1],
+    html: `<h2>1-1 ビット反転と3量子ビット反復符号</h2>
+    <p>論理状態を <code>α|000⟩ + β|111⟩</code> と3量子ビットに「冗長化」します。量子状態はコピーできません(no-cloning)が、<b>もつれ</b>で情報を広げることはできます。</p>
+    <p>直接 3 量子ビットを測ると α, β が壊れてしまうので、代わりに<b>パリティ</b> <code>Z₁Z₂</code>, <code>Z₂Z₃</code> だけを測ります。これを<b>スタビライザー測定</b>、結果を<b>シンドローム</b>と呼びます。符号状態ではどちらも +1 で、α と β の情報には一切触れません。</p>
+    <table><tr><th>エラー</th><th>Z₁Z₂</th><th>Z₂Z₃</th></tr>
+    <tr><td>なし</td><td>+1</td><td>+1</td></tr><tr><td>X₁</td><td>−1</td><td>+1</td></tr>
+    <tr><td>X₂</td><td>−1</td><td>−1</td></tr><tr><td>X₃</td><td>+1</td><td>−1</td></tr></table>
+    <div class="goal"><b>操作:</b> 光っている(−1 になった)チェックを見て、エラーが起きた量子ビットをクリックし X で打ち消してください。全チェックが消えたら「判定する」。</div>
+    ${LEGEND.std}
+    <h3>ポイント</h3><ul><li>チェックが光る = その2量子ビットのパリティが反転</li><li>X を2回かけると元に戻る (X² = I)。間違えたらもう一度クリック。</li></ul>`,
+    refs: ['shor95', 'terhal15'],
+  });
+  L.push({
+    id: '1-2', chap: 0, title: '5量子ビット反復符号と符号距離', code: 'rep5',
+    noise: { type: 'X', mode: 'count', count: 2 }, rounds: 3, tools: [1],
+    html: `<h2>1-2 符号距離 d と訂正能力</h2>
+    <p>d 個の量子ビットの反復符号は <b>符号距離 d</b>: 論理 X̄ = X⊗X⊗…⊗X を起こすには d 個のエラーが必要です。最小重みのエラーを推定する(=多数決)と、<b>t = ⌊(d−1)/2⌋</b> 個までのエラーを必ず訂正できます。</p>
+    <p>今回は d=5、エラーは 2 個。光るチェックは「エラーの連なり(チェーン)の<b>端点</b>」に現れます。隣り合う2個のエラーの間のチェックは2回反転して元に戻るので光りません。</p>
+    <div class="goal"><b>考え方:</b> 光るチェックをペアにする(または端=境界と組にする)と、その間にエラーの鎖があります。より<b>短い</b>鎖のほうがありそうです。これがのちの<b>最小重み完全マッチング (MWPM)</b>デコーダの考え方です。</div>
+    <h3>注意</h3><p>反復符号は X エラーにしか強くありません。Z エラー1個で論理位相が反転します(量子的な符号距離は1)。だから本物の量子符号が必要になります → 1-4, 1-5。</p>`,
+    refs: ['google21', 'dennis02'],
+  });
+  L.push({
+    id: '1-3', chap: 0, title: '確率的ノイズと「避けられない失敗」', code: 'rep5',
+    noise: { type: 'X', mode: 'iid', p: 0.15 }, rounds: 5, tools: [1],
+    html: `<h2>1-3 現実のノイズは確率的</h2>
+    <p>実機では各量子ビットが独立に確率 p でエラーを起こします(ここでは p = 15%)。たまたまエラーが 3 個以上起きると、どんなデコーダでも失敗します。</p>
+    <p>d=5 の反復符号の論理エラー率は p<sub>L</sub> = Σ<sub>k≥3</sub> C(5,k) p<sup>k</sup>(1−p)<sup>5−k</sup> ≈ 2.7% (p=0.15)。p が小さいほど、d が大きいほど指数的に小さくなります — これが量子誤り訂正の本質です。</p>
+    <div class="goal"><b>評価:</b> 最適なデコーダと同じ判断(同じ同値類)をすれば、結果が論理エラーでも「不可避の失敗」として合格になります。</div>
+    <p>Google は 2021 年、超伝導量子ビットで最大 21 量子ビットの反復符号を動かし、d を増やすと論理エラーが指数的に減ることを実証しました。</p>`,
+    refs: ['google21'],
+  });
+  L.push({
+    id: '1-4', chap: 0, title: '位相反転符号: アダマール基底の反復符号', code: 'phase3',
+    noise: { type: 'Z', mode: 'count', count: 1 }, rounds: 3, tools: [2],
+    html: `<h2>1-4 位相反転 (Z エラー)</h2>
+    <p>量子ビットには古典ビットにない<b>位相反転</b> Z|1⟩ = −|1⟩ があります。アダマール基底 |±⟩ では Z は |+⟩↔|−⟩ の「ビット反転」に見えます。</p>
+    <p>そこで <code>|0̄⟩=|+++⟩, |1̄⟩=|−−−⟩</code> とし、<b>X 型</b>のチェック <code>X₁X₂, X₂X₃</code> を測れば、Z エラーを検出できます。</p>
+    <div class="goal">青い X 型チェックが光ります。Z ツールでエラー箇所を打ち消してください。</div>
+    <p>X 型スタビライザーは Z(と Y)と<b>反可換</b>なので、その測定値が反転します。一般に「スタビライザー S とエラー E が反可換 ⇔ シンドローム 1」。</p>`,
+    refs: ['shor95', 'gottesman97'],
+  });
+  L.push({
+    id: '1-5', chap: 0, title: 'Shor の 9 量子ビット符号', code: 'shor9',
+    noise: { type: 'depol', mode: 'count', count: 1 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>1-5 最初の量子誤り訂正符号 (Shor 1995)</h2>
+    <p>ビット反転符号を位相反転符号の中に<b>連接 (concatenate)</b>した [[9,1,3]] 符号。任意の1量子ビットエラー (X, Y, Z、さらにその任意の重ね合わせ) を訂正できる最初の符号です。</p>
+    <ul><li>行の中の <code>ZZ</code> チェック(橙)6 個 → 各ブロックの X エラー</li>
+    <li>2 行にまたがる <code>X⊗6</code> チェック(青)2 個 → どのブロックに Z エラーがあるか</li></ul>
+    <div class="goal">Y = iXZ は両方のチェックを鳴らします。ツールは X / Z / Y を切り替え (キー 1/2/3)。</div>
+    <h3>縮退 (degeneracy)</h3><p>Z₁ のエラーに Z₂ で「訂正」しても成功します。Z₁Z₂ はスタビライザー(符号状態に作用しない)だからです。古典符号にはない量子符号特有の性質で、正しい訂正は1つではありません。</p>
+    <p>連続的なエラー (例えば小さな回転) も、シンドローム測定によって離散的な X/Y/Z に「射影」されるので、パウリエラーだけ考えれば十分です (エラーの離散化)。</p>`,
+    refs: ['shor95', 'knill97'],
+  });
+  L.push({
+    id: '1-6', chap: 0, title: '測定エラーと時空間デコード', kind: 'spacetime', d: 5, T: 5,
+    faults: { data: 2, meas: 1 }, rounds: 3,
+    html: `<h2>1-6 シンドローム測定も間違える</h2>
+    <p>実機では補助量子ビットの測定も誤ります。そこで同じスタビライザーを<b>繰り返し測定</b>し、前のラウンドとの差(XOR)が 1 になった点を<b>検出イベント</b>とします。</p>
+    <ul><li>データ量子ビットの X エラー → <b>同じ時刻</b>の隣り合う2チェックにイベント(横のペア)</li>
+    <li>測定エラー → <b>同じチェック</b>の連続2時刻にイベント(縦のペア)</li>
+    <li>最後の行は全データ量子ビットの直接測定から求めた完全なシンドローム</li></ul>
+    <div class="goal"><b>操作:</b> 検出イベント(橙の点)を2つずつクリックしてペアにします。左右の端の帯をクリックすると境界とペアになります。全イベントをペアにしたら判定。縦の距離(時間)も横の距離(空間)も重み1として、<b>合計の長さが最小</b>になるペアリング(MWPM)を探しましょう。</div>
+    <p>横方向の線分がデータ量子ビットへの訂正になります。縦の線は「測定エラーだった」という解釈で、訂正は不要です。</p>
+    <p>これが Google の実験 (2021, 2023, 2025) で実際に行われている<b>時空間 (space-time) デコード</b>です。サーフェスコードでは3次元(2次元空間+時間)のマッチングになります。</p>`,
+    refs: ['google21', 'dennis02', 'edmonds65', 'higgott23'],
+  });
+
+  // ---------------- Chapter 2 ----------------
+  L.push({
+    id: '2-1', chap: 1, title: '[[5,1,3]] 完全符号 (非CSS)', code: 'five',
+    noise: { type: 'depol', mode: 'count', count: 1 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>2-1 最小の量子符号 [[5,1,3]]</h2>
+    <p>スタビライザー生成元は <code>XZZXI</code> の巡回シフト 4 つ。X と Z が混ざった<b>非 CSS 符号</b>です。</p>
+    <p>1量子ビットエラーは 5 量子ビット × 3 種類 = 15 通り。シンドロームは 4 ビット = 16 通り(エラーなし含む)。ちょうど一致するので<b>完全符号</b>(量子ハミング限界を等号で満たす)です。任意の1量子ビットエラーを訂正できる最小の符号です。</p>
+    <div class="goal">各チェックの辺に書かれた文字が、その量子ビットに作用するパウリです。エラー P がチェックの文字と<b>反可換</b>(異なる非単位元のパウリ)のときチェックが光ります。</div>
+    <table><tr><th></th><th>X</th><th>Y</th><th>Z</th></tr><tr><th>X</th><td>可換</td><td>反</td><td>反</td></tr><tr><th>Z</th><td>反</td><td>反</td><td>可換</td></tr></table>
+    <p>記法 [[n,k,d]]: n 物理量子ビット, k 論理量子ビット, 符号距離 d。</p>`,
+    refs: ['laflamme96', 'bennett96', 'gottesman97'],
+  });
+  L.push({
+    id: '2-2', chap: 1, title: 'Steane 符号 [[7,1,3]] (CSS)', code: 'steane',
+    noise: { type: 'depol', mode: 'count', count: 1 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>2-2 CSS 符号: Steane [[7,1,3]]</h2>
+    <p>古典 [7,4,3] ハミング符号の検査行列 H を、X 型にも Z 型にも使います: H<sub>X</sub> = H<sub>Z</sub> = H。CSS 符号の条件 H<sub>X</sub>H<sub>Z</sub><sup>T</sup> = 0 を満たすのでスタビライザーが可換になります。</p>
+    <p>X エラーと Z エラーを<b>独立に</b>デコードできるのが CSS 符号の利点。各面(4量子ビット)に X 型と Z 型のチェックが1つずつあります。</p>
+    <div class="goal">各面の左の青●が X 型チェック、右の橙■が Z 型チェック。3つの面の光り方のパターン(3ビット)は量子ビットごとにすべて異なります — ハミング符号が1ビットエラーの位置を特定できるのと同じ理由です。</div>
+    <p>Steane 符号は <b>d=3 の2次元カラーコード</b>でもあり、全クリフォード演算(H, S, CNOT)を<b>トランスバーサル</b>に実行できます。中性原子 (Bluvstein et al. 2024) やイオントラップでの論理量子ビット実験に使われています。</p>`,
+    refs: ['steane96', 'cs96', 'bluvstein24'],
+  });
+
+  // ---------------- Chapter 3 ----------------
+  L.push({
+    id: '3-1', chap: 2, title: '回転サーフェスコード d=3', code: 'surf3',
+    noise: { type: 'depol', mode: 'count', count: 1 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>3-1 サーフェスコード</h2>
+    <p>2次元格子に量子ビットを並べ、<b>隣接する4量子ビットだけ</b>のチェック(プラケット)を測ります。局所的な相互作用だけで済むので超伝導量子ビットに最適で、Google や IBM の主力です。</p>
+    <ul><li>青のプラケット: X⊗4 (Z エラー検出)</li><li>橙のプラケット: Z⊗4 (X エラー検出)</li><li>端の半円: 重み2の境界チェック</li></ul>
+    <p>回転サーフェスコードは d×d = d² 個のデータ量子ビットで距離 d (Bombin & Martin-Delgado 2007, Horsman et al. 2012)。実機では d²−1 個の補助量子ビットを加えて合計 2d²−1 個 (d=3 で 17 個)。</p>
+    <div class="goal">「論理演算子」ボタンで X̄ (横断する X の列) と Z̄ を表示できます。どちらも盤面を端から端まで横切る重み d の文字列です。</div>`,
+    refs: ['kitaev03', 'dennis02', 'bombin07', 'fowler12'],
+  });
+  L.push({
+    id: '3-2', chap: 2, title: 'd=5: エラー連鎖とマッチング', code: 'surf5',
+    noise: { type: 'depol', mode: 'count', count: 2 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>3-2 エニオンとマッチング</h2>
+    <p>サーフェスコードでは、エラーの<b>鎖の端点</b>だけでチェックが光ります(トーリック符号ではこれを<b>エニオン</b>と呼びます)。X エラー鎖の端は橙のチェック、Z エラー鎖の端は青のチェックに現れます。</p>
+    <p>デコーダの仕事は「光ったチェックを短い鎖で結ぶ(または境界に逃がす)」こと。これを<b>最小重み完全マッチング (MWPM)</b>で解くのが標準手法です (Dennis et al. 2002; Edmonds のブロッサム法)。</p>
+    <div class="goal">訂正の鎖と実際のエラー鎖が合わさって<b>閉じたループ</b>(スタビライザーの積)になれば成功。盤面を<b>横断</b>してしまうと論理エラーです。</div>
+    <p>ビット反転ノイズ・完全測定での最適しきい値は約 10.9%、MWPM では約 10.3% (Dennis et al.; Wang, Harrington, Preskill)。</p>`,
+    refs: ['dennis02', 'edmonds65', 'higgott23'],
+  });
+  L.push({
+    id: '3-3', chap: 2, title: 'd=7: Google Willow の論理量子ビット', code: 'surf7',
+    noise: { type: 'depol', mode: 'iid', p: 0.035 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>3-3 しきい値以下の誤り訂正</h2>
+    <p>2024 年、Google の Willow プロセッサ (105 量子ビット) は d=3, 5, 7 の回転サーフェスコードで、距離を 2 増やすごとに論理エラー率が <b>Λ ≈ 2.14 倍</b>小さくなることを示しました。d=7 は 49 データ量子ビット + 48 測定量子ビット (+ リーク除去用) の 101 量子ビットで、1サイクルあたりの論理エラー率は約 0.143%。最良の物理量子ビットより長寿命な「break-even を超えた」論理メモリです。</p>
+    <p>このステージは各量子ビットが独立に p = 3.5% で脱分極エラーを起こします。エラーの個数は毎回ランダム。</p>
+    <div class="goal">エラーが多いときは、デコーダと同じ判断ができれば合格(避けられない失敗)。リアルタイムに毎サイクル (~1μs) これを行うデコーダが実機のボトルネックの一つです。</div>`,
+    refs: ['google25', 'google23', 'fowler12'],
+  });
+  L.push({
+    id: '3-4', chap: 2, title: 'XZZX サーフェスコード: バイアスノイズ', code: 'xzzx5',
+    noise: { type: 'biasZ', mode: 'count', count: 4, eta: 100 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>3-4 XZZX サーフェスコード (2021)</h2>
+    <p>多くの量子ビット (猫量子ビット、一部のスピン量子ビットなど) では Z エラーが X エラーより桁違いに起こりやすい<b>バイアスノイズ</b>です。</p>
+    <p>XZZX 符号は、サーフェスコードの片方の副格子にアダマールをかけたもの: 全チェックが <code>X Z Z X</code> 型になります(緑)。Z エラーだけが起きる極限では、符号は<b>斜め方向の反復符号の束</b>に帰着し、実効距離が大きく伸びます。</p>
+    <div class="goal">今回は Z エラーが 4 個 (η = p<sub>Z</sub>/(p<sub>X</sub>+p<sub>Y</sub>) = 100)。通常の d=5 サーフェスコードなら t=2 個までしか保証されませんが、XZZX ではほぼ訂正できます。プラケットの角の文字が各量子ビットに作用するパウリです。</div>
+    <p>Bonilla Ataides らは無限バイアスでしきい値 50%(ハッシング限界に到達)を示しました。</p>`,
+    refs: ['xzzx21'],
+  });
+
+  // ---------------- Chapter 4 ----------------
+  L.push({
+    id: '4-1', chap: 3, title: '6.6.6 カラーコード d=5 [[19,1,5]]', code: 'color5',
+    noise: { type: 'depol', mode: 'count', count: 2 }, rounds: 4, tools: [1, 2, 3],
+    html: `<h2>4-1 2次元カラーコード</h2>
+    <p>3色で塗り分けられる六角形タイル (6.6.6 格子) の頂点に量子ビットを置き、各面に X 型と Z 型のチェックを1つずつ置きます (Bombin & Martin-Delgado 2006)。隣接する面は常に2量子ビット(偶数)を共有するので可換です。</p>
+    <ul><li>三角形パッチ d=3 → [[7,1,3]] (Steane), d=5 → [[19,1,5]], d=7 → [[37,1,7]]</li>
+    <li>すべてのクリフォードゲートがトランスバーサル → 論理演算が軽い</li>
+    <li>1つのエラーが最大3つの面を光らせる。マッチングでは直接解けず、デコードはサーフェスコードより難しい</li></ul>
+    <div class="goal">各面の青●= X 型チェック、橙■= Z 型チェック。1量子ビットのエラーは、それを含む(最大3つの)面を光らせます。</div>
+    <p>Google (Lacroix et al. 2025) は超伝導量子ビットでカラーコード d=3→5 で論理エラーを Λ<sub>3/5</sub> ≈ 1.56 倍抑制し、トランスバーサル論理ゲートやマジック状態注入を実証しました。</p>`,
+    refs: ['bombin06', 'lacroix25', 'bluvstein24'],
+  });
+  L.push({
+    id: '4-2', chap: 3, title: 'カラーコード d=7 [[37,1,7]]', code: 'color7',
+    noise: { type: 'depol', mode: 'count', count: 3 }, rounds: 3, tools: [1, 2, 3],
+    html: `<h2>4-2 大きなカラーコード</h2>
+    <p>d=7, 37 量子ビット。3 個のエラーまで必ず訂正可能。サーフェスコード d=7 (49 量子ビット) より少ない量子ビットで同じ距離を実現します。</p>
+    <div class="goal">ヒント: 1 つの X エラーは、そのビットを含む面の<b>Z 型チェック</b>(橙)をすべて光らせます。3 面が光る点 = 内部の量子ビット、2 面 = 境界、1 面 = 角。</div>
+    <p>カラーコードのデコーダには、制限付きデコーダ (restriction decoder)、Möbius デコーダ、連接 MWPM などがあります。このゲームは最小重み全探索で厳密解を計算しています。</p>`,
+    refs: ['bombin06', 'lacroix25'],
+  });
+
+  // ---------------- Chapter 5 ----------------
+  L.push({
+    id: '5-1', chap: 4, title: 'ハイパーグラフ積: 反復符号 ⊗ 反復符号', code: 'hgpRep',
+    noise: { type: 'depol', mode: 'count', count: 1 }, rounds: 3, tools: [1, 2, 3],
+    html: `<h2>5-1 ハイパーグラフ積 (Tillich & Zémor 2009)</h2>
+    <p>任意の2つの古典符号 H<sub>1</sub> (m<sub>1</sub>×n<sub>1</sub>), H<sub>2</sub> から量子 CSS 符号を作る構成:</p>
+    <p><code>H<sub>X</sub> = [H<sub>1</sub>⊗I | I⊗H<sub>2</sub><sup>T</sup>]</code><br><code>H<sub>Z</sub> = [I⊗H<sub>2</sub> | H<sub>1</sub><sup>T</sup>⊗I]</code></p>
+    <p>H<sub>X</sub>H<sub>Z</sub><sup>T</sup> = H<sub>1</sub>⊗H<sub>2</sub><sup>T</sup> + H<sub>1</sub>⊗H<sub>2</sub><sup>T</sup> = 0 (mod 2) なので必ず CSS 条件を満たします。</p>
+    <div class="goal">3ビット反復符号同士の積は、(回転していない) [[13,1,3]] サーフェスコードそのものです。左上の 3×3 ブロックと右下の 2×2 ブロックが量子ビット、その他がチェック。</div>
+    <p>qLDPC 符号はこの「古典符号の積」という発想から大きく発展しました。</p>`,
+    refs: ['tillich14', 'breuckmann21'],
+  });
+  L.push({
+    id: '5-2', chap: 4, title: 'HGP(ハミング⊗ハミング) [[58,16,3]]', code: 'hgpHam',
+    noise: { type: 'X', mode: 'count', count: 1 }, rounds: 3, tools: [1],
+    html: `<h2>5-2 高レートの qLDPC 符号</h2>
+    <p>[7,4,3] ハミング符号同士のハイパーグラフ積。k = k<sub>1</sub>k<sub>2</sub> + k<sub>1</sub><sup>T</sup>k<sub>2</sub><sup>T</sup> = 4·4 + 0 = <b>16 論理量子ビット</b>を 58 物理量子ビットに詰め込みます(距離 3 のサーフェスコード 16 個なら 9×16 = 144 データ量子ビット)。</p>
+    <p>各チェックの重みは最大 4+3=7、各量子ビットが参加するチェック数も有界 → <b>低密度パリティ検査 (LDPC)</b>。ただしチェックは平面上で局所的ではありません。</p>
+    <div class="goal">今回は X エラーのみ (Z 型チェック=橙が光ります)。チェックや量子ビットにマウスを乗せる(タップする)とつながりが表示されます。光ったチェックの共通の量子ビットを探しましょう。</div>
+    <p>16 個の論理量子ビットのうち、どれが反転したかも判定に表示されます。</p>`,
+    refs: ['tillich14', 'breuckmann21'],
+  });
+  L.push({
+    id: '5-3', chap: 4, title: '二変数バイシクル符号 [[72,12,6]]', code: 'bb72',
+    noise: { type: 'X', mode: 'count', count: 2 }, rounds: 3, tools: [1],
+    html: `<h2>5-3 Bivariate Bicycle (BB) 符号 — IBM 2024</h2>
+    <p>ℓ×m トーラス上の巡回シフト x = S<sub>ℓ</sub>⊗I<sub>m</sub>, y = I<sub>ℓ</sub>⊗S<sub>m</sub> の多項式</p>
+    <p><code>A = x³ + y + y²,  B = y³ + x + x²</code> (ℓ = m = 6)</p>
+    <p>から <code>H<sub>X</sub> = [A | B]</code>, <code>H<sub>Z</sub> = [B<sup>T</sup> | A<sup>T</sup>]</code>。A と B は可換なので H<sub>X</sub>H<sub>Z</sub><sup>T</sup> = AB + BA = 0。</p>
+    <ul><li>各チェックの重みは 6、各量子ビットは 6 個のチェックに参加</li>
+    <li>トーラス上で各セルに L, R 2 量子ビット + X, Z チェック。6 本の辺のうち 4 本は近接、2 本は長距離 → 2 層の配線で実装可能 (thickness-2)</li>
+    <li>[[72,12,6]]: 12 論理量子ビット、距離 6</li></ul>
+    <div class="goal">X エラー 2 個。光った橙チェック(各エラーで最大 3 個)の共通の量子ビットを探します。L/R の量子ビットに触れると、それにつながるチェックが表示されます。トーラスなので端は反対側とつながっています。</div>`,
+    refs: ['bravyi24', 'kovalev13', 'panteleev21'],
+  });
+  L.push({
+    id: '5-4', chap: 4, title: 'グロス符号 [[144,12,12]] (ボス)', code: 'gross',
+    noise: { type: 'X', mode: 'count', count: 3 }, rounds: 3, tools: [1],
+    html: `<h2>5-4 グロス符号 (gross = 144)</h2>
+    <p>同じ A, B で ℓ=12, m=6。<b>144 データ量子ビット + 144 チェック量子ビット = 288 量子ビット</b>で、12 論理量子ビットを距離 12 で保護します。同じ性能をサーフェスコードで得るには約 3000 量子ビット必要で、<b>約 10 倍の効率</b>です (Bravyi et al., Nature 2024)。</p>
+    <p>IBM はこの符号をベースにしたフォールトトレラント量子コンピュータのアーキテクチャ (“Tour de gross”, 2025) を発表しています。</p>
+    <div class="goal">X エラー 3 個。人間には大変です! 行き詰まったら「ヒント」でデコーダ (BP+OSD) の答えを見られます。BP は LDPC 符号の標準的なデコーダですが、量子符号では縮退や短いループのため収束しないことがあり、OSD (順序統計デコード) で補います。</div>`,
+    refs: ['bravyi24', 'yoder25', 'panteleev21', 'roffe20'],
+  });
+
+  const FREE_CODES = [
+    ['rep5', 'ビット反転反復符号 [5,1,5]'], ['phase5', '位相反転反復符号 [5,1,5]'], ['rep7', 'ビット反転反復符号 [7,1,7]'],
+    ['shor9', 'Shor [[9,1,3]]'], ['five', '完全符号 [[5,1,3]]'], ['steane', 'Steane [[7,1,3]]'],
+    ['surf3', 'サーフェスコード d=3 [[9,1,3]]'], ['surf5', 'サーフェスコード d=5 [[25,1,5]]'], ['surf7', 'サーフェスコード d=7 [[49,1,7]]'],
+    ['xzzx5', 'XZZX サーフェスコード d=5'], ['xzzx7', 'XZZX サーフェスコード d=7'],
+    ['color5', 'カラーコード d=5 [[19,1,5]]'], ['color7', 'カラーコード d=7 [[37,1,7]]'],
+    ['hgpRep', 'HGP(反復⊗反復) [[13,1,3]]'], ['hgpHam', 'HGP(ハミング⊗ハミング) [[58,16,3]]'],
+    ['bb72', 'BB符号 [[72,12,6]]'], ['bb90', 'BB符号 [[90,8,10]]'], ['bb108', 'BB符号 [[108,8,10]]'], ['gross', 'グロス符号 [[144,12,12]]'],
+  ];
+
+  const REF_PAGE = `
+  <h2>解説: このゲームで「本物」になっているところ</h2>
+  <p>盤面上の符号はすべて論文の定義どおりに生成され、スタビライザーの可換性、論理量子ビット数 k = n − rank(S)、小さな符号の距離 d を、
+  GF(2) 線形代数で検証しています (<code>qec/test.js</code>)。</p>
+  <ul>
+    <li><b>シンドローム</b>: 各スタビライザー生成元とエラーのシンプレクティック内積 s = S·Λ·e (mod 2)。</li>
+    <li><b>判定</b>: 残差 R = (エラー)·(あなたの訂正) のシンドロームが 0 で、かつ R がスタビライザー群に含まれる (rank 判定) なら成功。含まれなければ<b>論理エラー</b>で、どの論理量子ビットの X̄/Z̄ が反転したかを、シンプレクティック・グラム-シュミットで作った論理演算子基底から求めます。</li>
+    <li><b>デコーダ</b>: 小さな符号は最小コスト (= 最尤に近い) のパウリを全探索。大きな符号は 2 値 BP (正規化 min-sum) + OSD-CS (Panteleev & Kalachev 2021; Roffe et al. 2020)。時空間反復符号はビットマスク DP による厳密な最小重み完全マッチング。</li>
+    <li><b>ノイズ</b>: 符号容量ノイズ (データ量子ビットのみ、測定は完全) が基本。1-6 だけ測定エラーを含む現象論的ノイズ。実機の回路レベルノイズ (ゲート・リーク・クロストーク) は含みません。</li>
+  </ul>
+  <h3>符号の一覧</h3>
+  <table class="reftable">
+  <tr><th>符号</th><th>[[n,k,d]]</th><th>構成</th></tr>
+  <tr><td>反復符号</td><td>[d,1,d] (古典)</td><td>Z<sub>i</sub>Z<sub>i+1</sub></td></tr>
+  <tr><td>Shor</td><td>[[9,1,3]]</td><td>反復符号の連接</td></tr>
+  <tr><td>完全符号</td><td>[[5,1,3]]</td><td>XZZXI の巡回シフト</td></tr>
+  <tr><td>Steane</td><td>[[7,1,3]]</td><td>CSS(ハミング, ハミング)</td></tr>
+  <tr><td>回転サーフェスコード</td><td>[[d²,1,d]]</td><td>重み4のプラケット + 重み2の境界</td></tr>
+  <tr><td>XZZX</td><td>[[d²,1,d]]</td><td>サーフェスコードに副格子アダマール</td></tr>
+  <tr><td>6.6.6 カラーコード</td><td>[[(3d²+1)/4,1,d]]</td><td>三色六角格子の三角形パッチ</td></tr>
+  <tr><td>ハイパーグラフ積</td><td>[[58,16,3]] など</td><td>H<sub>1</sub>, H<sub>2</sub> の積</td></tr>
+  <tr><td>BB 符号</td><td>[[72,12,6]], [[90,8,10]], [[108,8,10]], [[144,12,12]]</td><td>A, B ∈ F<sub>2</sub>[x,y]/(x<sup>ℓ</sup>−1, y<sup>m</sup>−1)</td></tr>
+  </table>
+  <h3>その他の最新の話題 (ゲーム外)</h3>
+  <ul>
+    <li><b>漸近的に良い qLDPC 符号</b> (Panteleev & Kalachev 2022): k と d が n に比例する LDPC 符号が存在。量子タナー符号など。</li>
+    <li><b>リフト積 (Lifted product) 符号</b>と中性原子での定数オーバーヘッドの FTQC (Xu et al. 2024)。</li>
+    <li><b>フロケ (Floquet) 符号</b> (Hastings & Haah 2021): 2量子ビット測定の周期的な列で論理量子ビットが動的に生成される。</li>
+  </ul>
+  <h3>文献</h3>`;
+
+  root.QEC_LEVELS = { REFS, LEVELS: L, CHAPTERS, FREE_CODES, REF_PAGE };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* QEC Puzzle — game UI */
+(function () {
+  'use strict';
+  const Q = window.QEC;
+  const { LEVELS, CHAPTERS, REFS, FREE_CODES, REF_PAGE } = window.QEC_LEVELS;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const PN = Q.PNAME;
+  const PCLS = ['', 'X', 'Z', 'Y'];
+
+  const CODE_REFS = {
+    rep5: ['google21'], rep7: ['google21'], phase5: ['shor95'], shor9: ['shor95'], five: ['laflamme96', 'bennett96'],
+    steane: ['steane96', 'cs96'], surf3: ['dennis02', 'bombin07', 'google25'], surf5: ['dennis02', 'google25'], surf7: ['google25'],
+    xzzx5: ['xzzx21'], xzzx7: ['xzzx21'], color5: ['bombin06', 'lacroix25'], color7: ['bombin06', 'lacroix25'],
+    hgpRep: ['tillich14'], hgpHam: ['tillich14'], bb72: ['bravyi24'], bb90: ['bravyi24'], bb108: ['bravyi24'], gross: ['bravyi24', 'yoder25'],
+  };
+
+  // ------------------------------------------------------------------ storage
+  const STORE_KEY = 'qecPuzzle.v1';
+  function loadProgress() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; } }
+  function saveProgress(p) { try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) { /* private mode */ } }
+  let progress = loadProgress();
+
+  // ------------------------------------------------------------------ state
+  const S = {
+    mode: 'levels', level: null, code: null, tool: 1,
+    round: 0, results: [], error: null, syn0: null, corr: null, revealed: false,
+    hintUsed: false, hintShown: false, dec: null, logShow: -1, matrixOn: false,
+    hlQ: -1, hlS: -1, free: { ok: 0, total: 0 },
+    st: null, // spacetime state
+  };
+
+  // ------------------------------------------------------------------ helpers
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  const fmt = (x, n = 2) => Number(x).toFixed(n);
+  const stars = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+  function noiseLabel(nz) {
+    const t = { X: 'ビット反転 X', Z: '位相反転 Z', depol: '脱分極 X/Y/Z', biasZ: `Zバイアス η=${nz.eta ?? 100}` }[nz.type];
+    return nz.mode === 'count' ? `${t} ・ エラー ${nz.count} 個` : `${t} ・ p = ${nz.p}`;
+  }
+
+  // ------------------------------------------------------------------ navigation
+  function buildNav() {
+    const nav = $('levelnav');
+    nav.innerHTML = '';
+    CHAPTERS.forEach((ch, ci) => {
+      const box = document.createElement('div');
+      box.className = 'chap';
+      box.innerHTML = `<h3>${ch}</h3>`;
+      LEVELS.filter(l => l.chap === ci).forEach(l => {
+        const b = document.createElement('button');
+        b.className = 'lvbtn' + (S.level && S.level.id === l.id && S.mode === 'levels' ? ' active' : '');
+        const st = progress[l.id] || 0;
+        b.innerHTML = `<span class="num">${l.id}</span><span>${l.title}</span><span class="stars">${st ? stars(st) : ''}</span>`;
+        b.onclick = () => { S.mode = 'levels'; loadLevel(l); };
+        box.appendChild(b);
+      });
+      nav.appendChild(box);
+    });
+  }
+
+  function showView(v) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+    $('view-play').classList.toggle('active', v === 'levels' || v === 'free');
+    $('view-lab').classList.toggle('active', v === 'lab');
+    $('view-refs').classList.toggle('active', v === 'refs');
+    if (v === 'free') { S.mode = 'free'; $('freebar').hidden = false; startFree(); }
+    if (v === 'levels') { S.mode = 'levels'; $('freebar').hidden = true; loadLevel(S.level && S.level.id !== 'free' ? S.level : LEVELS[0]); }
+    if (v === 'lab' && window.QEC_LAB) window.QEC_LAB.show();
+  }
+
+  // ------------------------------------------------------------------ level setup
+  function loadLevel(lv) {
+    S.level = lv;
+    S.round = 0; S.results = []; S.hintUsed = false; S.levelHint = false; S.weightOK = true;
+    S.free = { ok: 0, total: 0 };
+    S.logShow = -1;
+    if (lv.kind === 'spacetime') { S.code = null; } else { S.code = Q.getCode(lv.code); }
+    renderLesson();
+    buildNav();
+    newRound();
+  }
+
+  function renderLesson() {
+    const lv = S.level;
+    let html = lv.html || '';
+    let refs = lv.refs || [];
+    if (lv.id === 'free') {
+      const c = S.code;
+      html = `<h2>フリープレイ: ${c.name}</h2>
+        <p><b>[[${c.n}, ${c.k}, ${c.params[2]}]]</b> ・ スタビライザー生成元 ${c.m} 個 ・ ${c.css ? 'CSS 符号' : '非 CSS 符号'}</p>
+        <p>最大重みのチェック: ${Math.max(...c.stabSupport.map(s => s.length))} ・ 1量子ビットが参加するチェック数(最大): ${Math.max(...c.qubitStabs.map(s => s.length))}</p>
+        <div class="goal">符号・ノイズ・モードを選んで「新しい問題」。独立同分布モードでは、デコーダも失敗する「避けられない失敗」が起こり得ます。</div>
+        <div class="legendrow"><span><i class="sw" style="background:var(--z)"></i>Z型チェック</span><span><i class="sw" style="background:var(--x)"></i>X型チェック</span><span><i class="sw" style="background:var(--m)"></i>混合型</span></div>`;
+      refs = CODE_REFS[c.id] || [];
+    }
+    $('lesson').innerHTML = html + (refs.length ? `<h3>参考文献</h3>` + refs.map(r => `<div class="ref">${REFS[r]}</div>`).join('') : '');
+  }
+
+  function setTools() {
+    const allowed = S.level.tools || (S.code && S.code.protects ? [S.code.protects === 'X' ? 1 : 2] : [1, 2, 3]);
+    document.querySelectorAll('.tool').forEach(b => {
+      const p = +b.dataset.p;
+      b.disabled = !allowed.includes(p) || S.level.kind === 'spacetime';
+    });
+    if (!allowed.includes(S.tool)) S.tool = allowed[0];
+    document.querySelectorAll('.tool').forEach(b => b.classList.toggle('active', +b.dataset.p === S.tool));
+  }
+
+  function newRound() {
+    const lv = S.level;
+    S.revealed = false; S.hintShown = false; S.dec = null; S.hlQ = -1; S.hlS = -1;
+    $('result').hidden = true;
+    const spacetime = lv.kind === 'spacetime';
+    $('btnLogical').hidden = spacetime; $('btnMatrix').hidden = spacetime;
+    $('btnSubmit').disabled = false;
+    setTools();
+    if (spacetime) return newSpacetimeRound();
+    const c = S.code, nz = lv.noise;
+    let e, syn, guard = 0;
+    do {
+      e = nz.mode === 'count' ? Q.sampleCount(c.n, nz.count, nz) : Q.sampleIID(c.n, nz);
+      syn = c.syndrome(e);
+    } while (Q.isZero(syn) && guard++ < 200);
+    S.error = e; S.syn0 = syn; S.corr = Q.pauliVec(c.n);
+    renderHeader();
+    renderBoard();
+    update();
+    if (S.matrixOn) drawMatrix();
+  }
+
+  function renderHeader() {
+    const lv = S.level;
+    $('lvTitle').textContent = lv.id === 'free' ? `フリープレイ — ${S.code.name}` : `${lv.id}  ${lv.title}`;
+    const b = [];
+    if (lv.kind === 'spacetime') {
+      b.push(`<span class="badge code">反復符号 d=${lv.d}</span>`, `<span class="badge">${lv.T} ラウンド測定</span>`, `<span class="badge">データエラー + 測定エラー</span>`);
+    } else {
+      const c = S.code;
+      b.push(`<span class="badge code">[[${c.n},${c.k},${c.params[2]}]]${c.protects ? ' (' + c.protects + 'のみ)' : ''}</span>`);
+      b.push(`<span class="badge">${noiseLabel(lv.noise)}</span>`);
+      b.push(`<span class="badge">${c.css ? 'CSS' : '非CSS'}</span>`);
+      if (c.torus) b.push(`<span class="badge">トーラス ${c.torus.l}×${c.torus.m} (端は反対側とつながる) ・ ○X型 □Z型</span>`);
+    }
+    $('lvBadges').innerHTML = b.join('');
+    const rd = $('roundDots');
+    rd.innerHTML = '';
+    if (S.mode === 'free') {
+      rd.innerHTML = `<span class="badge">成功 ${S.free.ok} / ${S.free.total}</span>`;
+    } else {
+      for (let i = 0; i < lv.rounds; i++) {
+        const d = document.createElement('span');
+        const r = S.results[i];
+        d.className = 'rdot' + (i === S.round && !r ? ' cur' : '') + (r ? ' ' + r.cls : '');
+        d.title = `ラウンド ${i + 1}`;
+        rd.appendChild(d);
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ board rendering
+  let qEls = [], stEls = [], layers = {}, R = 0.4;
+
+  function computeR(code) {
+    const pts = code.qubits.map(q => q.pos).concat(code.stabs.filter(s => s.style === 'node' || s.style === 'face').map(s => s.pos));
+    let md = Infinity;
+    for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+      const d = Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
+      if (d > 1e-6 && d < md) md = d;
+    }
+    return Math.min(0.48, md * 0.36);
+  }
+
+  function renderBoard() {
+    const c = S.code, svg = $('board');
+    svg.innerHTML = '';
+    R = computeR(c);
+    // bounds
+    let xs = [], ys = [];
+    c.qubits.forEach(q => { xs.push(q.pos[0]); ys.push(q.pos[1]); });
+    c.stabs.forEach(s => { xs.push(s.pos[0]); ys.push(s.pos[1]); (s.poly || []).forEach(p => { xs.push(p[0]); ys.push(p[1]); }); });
+    const pad = R * 2.6;
+    let x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad, w = Math.max(...xs) - Math.min(...xs) + 2 * pad, h = Math.max(...ys) - Math.min(...ys) + 2 * pad;
+    // keep tiny codes from being drawn huge
+    const minW = 11, minH = 7;
+    if (w < minW) { x0 -= (minW - w) / 2; w = minW; }
+    if (h < minH) { y0 -= (minH - h) / 2; h = minH; }
+    svg.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    const defs = el('defs', null, svg);
+    ['X', 'Z', 'M'].forEach(k => {
+      const f = el('filter', { id: 'glow' + k, x: '-1', y: '-1', width: '3', height: '3' }, defs);
+      el('feDropShadow', { dx: 0, dy: 0, stdDeviation: R * 0.35, style: `flood-color: var(--${k.toLowerCase()}); flood-opacity: 1` }, f);
+    });
+    layers.faces = el('g', null, svg);
+    layers.plaq = el('g', null, svg);
+    layers.edges = el('g', null, svg);
+    layers.stab = el('g', null, svg);
+    layers.qubit = el('g', null, svg);
+    layers.over = el('g', null, svg);
+    // colour-code faces
+    (c.faces || []).forEach(f => {
+      const d = 'M' + f.poly.map(p => p.join(',')).join('L') + 'Z';
+      el('path', { d, class: 'face ' + f.color }, layers.faces);
+      el('path', { d, class: 'faceline' }, layers.faces);
+    });
+    // stabilisers
+    stEls = c.stabs.map((s, j) => {
+      const g = el('g', { class: `st ${s.kind}`, 'data-s': j }, s.style === 'plaq' ? layers.plaq : layers.stab);
+      if (s.style === 'plaq') {
+        const d = s.curve ? `M${s.poly[0]}Q${s.poly[1]} ${s.poly[2]}Z` : 'M' + s.poly.map(p => p.join(',')).join('L') + 'Z';
+        el('path', { class: 'poly', d }, g);
+        el('circle', { class: 'mk', cx: s.pos[0], cy: s.pos[1], r: R * 0.42 }, g);
+        if (s.kind === 'M') {
+          c.stabSupport[j].forEach(i => {
+            const q = c.qubits[i].pos, t = 0.62;
+            const p = Q.pauliGet(s, i);
+            const tx = el('text', { class: 'plet p' + PCLS[p], x: s.pos[0] + (q[0] - s.pos[0]) * t, y: s.pos[1] + (q[1] - s.pos[1]) * t, 'font-size': R * 0.7 }, layers.over);
+            tx.textContent = PN[p];
+          });
+        }
+      } else {
+        const sz = s.style === 'face' ? R * 0.42 : R * 0.6;
+        if (s.kind === 'Z') el('rect', { class: 'mk', x: s.pos[0] - sz, y: s.pos[1] - sz, width: 2 * sz, height: 2 * sz, rx: sz * 0.25 }, g);
+        else if (s.kind === 'X') el('circle', { class: 'mk', cx: s.pos[0], cy: s.pos[1], r: sz * 1.05 }, g);
+        else el('path', { class: 'mk', d: `M${s.pos[0]},${s.pos[1] - sz * 1.3}L${s.pos[0] + sz * 1.3},${s.pos[1]}L${s.pos[0]},${s.pos[1] + sz * 1.3}L${s.pos[0] - sz * 1.3},${s.pos[1]}Z` }, g);
+        if (s.label) {
+          const t = el('text', { class: 'plet', x: s.pos[0], y: s.pos[1] + sz * 2.4, 'font-size': R * 0.45, fill: 'var(--muted)', style: 'fill:var(--muted)' }, layers.stab);
+          t.textContent = s.label;
+        }
+      }
+      g.addEventListener('mouseenter', ev => { S.hlS = j; update(); showTip(ev, stabTip(j)); });
+      g.addEventListener('mousemove', moveTip);
+      g.addEventListener('mouseleave', () => { S.hlS = -1; update(); hideTip(); });
+      g.addEventListener('click', ev => { ev.stopPropagation(); S.hlS = S.hlS === j && S.pinS ? -1 : j; S.pinS = S.hlS >= 0; S.hlQ = -1; update(); });
+      return g;
+    });
+    // qubits
+    const showIdx = c.n <= 60;
+    qEls = c.qubits.map((q, i) => {
+      const g = el('g', { class: 'q', 'data-q': i, transform: `translate(${q.pos[0]},${q.pos[1]})` }, layers.qubit);
+      el('circle', { class: 'body', r: R }, g);
+      const lbl = el('text', { class: 'lbl', 'font-size': R * 1.05 }, g);
+      if (showIdx) { const t = el('text', { class: 'idx', y: R * 1.75, 'font-size': R * 0.5 }, g); t.textContent = (q.label || '') + i; }
+      else if (q.label) { const t = el('text', { class: 'idx', y: R * 1.7, 'font-size': R * 0.5 }, g); t.textContent = q.label; }
+      g.addEventListener('click', ev => { ev.stopPropagation(); clickQubit(i); });
+      g.addEventListener('mouseenter', ev => { S.hlQ = i; update(); showTip(ev, qubitTip(i)); });
+      g.addEventListener('mousemove', moveTip);
+      g.addEventListener('mouseleave', () => { S.hlQ = -1; update(); hideTip(); });
+      g._lbl = lbl;
+      return g;
+    });
+    // all edges for small node-style codes
+    layers.staticEdges = el('g', null, layers.edges);
+    layers.dynEdges = el('g', null, layers.edges);
+    if (!c.sparseEdges) c.stabs.forEach((s, j) => { if (s.style === 'node') drawStabEdges(layers.staticEdges, j, ''); });
+    svg.onclick = () => { S.hlS = -1; S.pinS = false; update(); };
+  }
+
+  function nearestImage(code, from, to) {
+    if (!code.torus) return to;
+    const { l, m, cell } = code.torus, W = l * cell * 2, H = m * cell * 2;
+    let best = to, bd = Infinity;
+    for (const dx of [-W, 0, W]) for (const dy of [-H, 0, H]) {
+      const p = [to[0] + dx, to[1] + dy], d = Math.hypot(p[0] - from[0], p[1] - from[1]);
+      if (d < bd) { bd = d; best = p; }
+    }
+    return best;
+  }
+
+  function drawStabEdges(layer, j, extra) {
+    const c = S.code, s = c.stabs[j];
+    c.stabSupport[j].forEach(i => {
+      const to = nearestImage(c, s.pos, c.qubits[i].pos);
+      el('line', { class: `edge ${s.kind} ${extra}`, x1: s.pos[0], y1: s.pos[1], x2: to[0], y2: to[1] }, layer);
+      if (s.kind === 'M' && s.style === 'node') {
+        const p = Q.pauliGet(s, i), t = 0.4;
+        const tx = el('text', { class: 'plet p' + PCLS[p], x: s.pos[0] + (to[0] - s.pos[0]) * t, y: s.pos[1] + (to[1] - s.pos[1]) * t, 'font-size': R * 0.62 }, layer);
+        tx.textContent = PN[p];
+      }
+    });
+  }
+
+  function currentSyndrome() {
+    return Q.xorInto(Uint8Array.from(S.syn0), S.code.syndrome(S.corr));
+  }
+
+  function update() {
+    if (S.level.kind === 'spacetime') return updateSpacetime();
+    const c = S.code, syn = currentSyndrome();
+    // highlight sets
+    const hlQ = new Set(), hlS = new Set();
+    if (S.hlQ >= 0) { hlQ.add(S.hlQ); c.qubitStabs[S.hlQ].forEach(j => hlS.add(j)); }
+    if (S.hlS >= 0) { hlS.add(S.hlS); c.stabSupport[S.hlS].forEach(i => hlQ.add(i)); }
+    stEls.forEach((g, j) => { g.classList.toggle('on', !!syn[j]); g.classList.toggle('hl', hlS.has(j) && (S.hlS === j || S.hlQ >= 0)); });
+    // dynamic edges
+    const de = layers.dynEdges; de.innerHTML = '';
+    c.stabs.forEach((s, j) => {
+      if (s.style !== 'node') return;
+      if (c.sparseEdges && syn[j]) drawStabEdges(de, j, 'on');
+      else if (!c.sparseEdges && syn[j]) drawStabEdges(de, j, 'on');
+    });
+    if (S.hlS >= 0 && c.stabs[S.hlS].style === 'node') drawStabEdges(de, S.hlS, 'hl');
+    if (S.hlQ >= 0) c.qubitStabs[S.hlQ].forEach(j => { if (c.stabs[j].style === 'node') drawStabEdges(de, j, 'hl'); });
+    // qubits
+    qEls.forEach((g, i) => {
+      const p = Q.pauliGet(S.corr, i);
+      g.classList.remove('hasX', 'hasZ', 'hasY');
+      if (p) g.classList.add('has' + PN[p]);
+      g._lbl.textContent = p ? PN[p] : '';
+      g.classList.toggle('hl', hlQ.has(i));
+    });
+    // overlays: hint ghost / logicals / reveal
+    const ov = layers.over;
+    ov.querySelectorAll('.dyn').forEach(e => e.remove());
+    if (S.hintShown && S.dec) {
+      for (let i = 0; i < c.n; i++) {
+        const p = Q.pauliGet(S.dec.correction, i);
+        if (!p) continue;
+        const [x, y] = c.qubits[i].pos;
+        const g = el('g', { class: 'ghost dyn' }, ov);
+        el('circle', { cx: x, cy: y, r: R * 1.3 }, g);
+        const t = el('text', { class: 'plet', x: x - R * 1.15, y: y - R * 1.15, 'font-size': R * 0.75 }, g);
+        t.textContent = PN[p];
+      }
+    }
+    if (S.logShow >= 0) {
+      const L = c.logicals();
+      const pr = L[S.logShow >> 1], op = (S.logShow & 1) ? pr.Z : pr.X;
+      for (let i = 0; i < c.n; i++) {
+        const p = Q.pauliGet(op, i);
+        if (!p) continue;
+        const [x, y] = c.qubits[i].pos;
+        el('circle', { class: 'dyn', cx: x, cy: y, r: R * 1.35, fill: 'none', 'stroke-width': R * 0.22, style: `stroke: var(--${PN[p].toLowerCase()})` }, ov);
+        const t = el('text', { class: 'plet dyn p' + PN[p], x: x + R * 1.25, y: y - R * 1.25, 'font-size': R * 0.7 }, ov);
+        t.textContent = PN[p];
+      }
+    }
+    if (S.revealed) {
+      const res = Q.pauliMul(S.error, S.corr);
+      for (let i = 0; i < c.n; i++) {
+        const [x, y] = c.qubits[i].pos;
+        const pe = Q.pauliGet(S.error, i);
+        if (pe) {
+          const g = el('g', { class: 'dyn', transform: `translate(${x + R * 0.8},${y - R * 0.8})` }, ov);
+          el('circle', { r: R * 0.5, style: `fill: var(--bad)` }, g);
+          const t = el('text', { class: 'plet', 'font-size': R * 0.62, style: 'fill:#fff' }, g);
+          t.textContent = PN[pe];
+        }
+        if (Q.pauliGet(res, i)) el('circle', { class: 'dyn', cx: x, cy: y, r: R * 1.22, fill: 'none', 'stroke-width': R * 0.1, 'stroke-dasharray': `${R * 0.3} ${R * 0.2}`, style: 'stroke: var(--bad)' }, ov);
+      }
+    }
+    // status
+    const lit = Q.weightOf(syn), w = Q.pauliWeight(S.corr);
+    if (!S.revealed) {
+      $('status').innerHTML = lit
+        ? `光っているチェック: <b>${lit}</b> / ${c.m} ・ 訂正の重み: <b>${w}</b>`
+        : `<b style="color:var(--ok)">全チェックが +1 に戻りました。</b> 訂正の重み ${w}。「判定する」で結果を確認 (Enter)`;
+      if (S.hintShown && S.dec) $('status').innerHTML += ` ・ <span style="color:var(--accent)">点線 = デコーダ (${S.dec.method}) の訂正</span> <button class="btn ghost" id="applyHint">適用する</button>`;
+      const ah = $('applyHint');
+      if (ah) ah.onclick = () => { S.corr = Q.pauliClone(S.dec.correction); update(); };
+    }
+    if (S.matrixOn) drawMatrix();
+  }
+
+  function stabTip(j) {
+    const c = S.code, s = c.stabs[j], syn = currentSyndrome();
+    const ops = c.stabSupport[j].map(i => PN[Q.pauliGet(s, i)] + '<sub>' + i + '</sub>').join(' ');
+    const kind = s.kind === 'X' ? 'X型チェック' : s.kind === 'Z' ? 'Z型チェック' : '混合型チェック';
+    return `<b>${kind} #${j}</b> (重み ${c.stabSupport[j].length})<br><span class="mono">${ops}</span><br>測定値: <b>${syn[j] ? '−1 (反転)' : '+1'}</b>`;
+  }
+  function qubitTip(i) {
+    const c = S.code;
+    return `<b>量子ビット ${c.qubits[i].label || 'q'}${i}</b><br>${c.qubitStabs[i].length} 個のチェックに参加<br><span style="color:var(--muted)">クリックで ${PN[S.tool]} を適用</span>`;
+  }
+  function showTip(ev, html) { if (ev.pointerType === 'touch') return; const t = $('tip'); t.innerHTML = html; t.hidden = false; moveTip(ev); }
+  function moveTip(ev) {
+    const t = $('tip'), wrap = $('boardWrap').getBoundingClientRect();
+    let x = ev.clientX - wrap.left + 14, y = ev.clientY - wrap.top + 14;
+    if (x + 240 > wrap.width) x = ev.clientX - wrap.left - 250;
+    if (y + 90 > wrap.height) y = ev.clientY - wrap.top - 90;
+    t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
+  }
+  function hideTip() { $('tip').hidden = true; }
+
+  function clickQubit(i) {
+    if (S.revealed) return;
+    const btn = document.querySelector(`.tool[data-p="${S.tool}"]`);
+    if (btn && btn.disabled) return;
+    Q.pauliApply(S.corr, i, S.tool);
+    update();
+  }
+
+  // ------------------------------------------------------------------ decoder / judging
+  function decoderResult() {
+    if (!S.dec) S.dec = Q.decode(S.code, S.syn0, S.level.noise);
+    return S.dec;
+  }
+
+  function hint() {
+    if (S.revealed) return;
+    if (S.level.kind === 'spacetime') { S.st.showDec = !S.st.showDec; S.hintUsed = true; S.levelHint = true; return updateSpacetime(); }
+    decoderResult();
+    S.hintShown = !S.hintShown;
+    S.hintUsed = true; S.levelHint = true;
+    update();
+  }
+
+  function submit() {
+    if (S.revealed) return nextRound();
+    if (S.level.kind === 'spacetime') return submitSpacetime();
+    const c = S.code, syn = currentSyndrome();
+    if (!Q.isZero(syn)) {
+      $('status').innerHTML = `<span style="color:var(--warn)">まだ ${Q.weightOf(syn)} 個のチェックが光っています。</span> デコーダは測定されたシンドロームと矛盾しない訂正を出す必要があります。`;
+      return;
+    }
+    S.revealed = true;
+    const dec = decoderResult();
+    const res = Q.pauliMul(S.error, S.corr);
+    const cls = c.classify(res);
+    const decCls = c.classify(Q.pauliMul(S.error, dec.correction));
+    const same = c.isStabilizer(Q.pauliMul(S.corr, dec.correction));
+    const w = Q.pauliWeight(S.corr), wd = Q.pauliWeight(dec.correction), we = Q.pauliWeight(S.error);
+    let kind, title, body;
+    if (cls.ok) {
+      kind = 'ok'; title = '成功! 論理情報は守られました';
+      body = Q.isZero(res.x) && Q.isZero(res.z)
+        ? '訂正はエラーとぴったり一致しました。'
+        : `訂正はエラーと異なりますが、残差 E·C は<b>スタビライザー</b>(重み ${Q.pauliWeight(res)}) なので符号状態に作用しません — これが<b>縮退</b>です。`;
+    } else if (same) {
+      kind = 'meh'; title = '不可避の失敗 (最適デコーダと同じ判断)';
+      body = `エラーが多すぎて、最もありそうな訂正が外れました。デコーダも同じ結果です。` + flipText(cls);
+    } else {
+      kind = 'bad'; title = '論理エラー!';
+      body = `残差 E·C がシンドロームを残さない<b>論理演算子</b>になりました。` + flipText(cls) +
+        (decCls.ok ? '<br>デコーダは正しく訂正できていました (点線)。' : ' (デコーダも失敗するケースでしたが、別の同値類を選びました。)');
+      S.hintShown = true;
+    }
+    if (w > wd && cls.ok) S.weightOK = false;
+    if (!cls.ok && kind !== 'meh') S.weightOK = false;
+    const r = $('result');
+    r.className = 'result ' + kind; r.hidden = false;
+    r.innerHTML = `<h4>${title}</h4><div>${body}</div>
+      <div class="row"><span class="badge">実際のエラー重み ${we}</span><span class="badge">あなたの訂正 ${w}</span><span class="badge">デコーダ ${wd} (${dec.method})</span></div>
+      <div class="pstr">E = ${sparseStr(S.error)}<br>C = ${sparseStr(S.corr)}</div>
+      <div class="row"><button class="btn primary" id="btnNext">${nextLabel()}</button></div>`;
+    $('btnNext').onclick = nextRound;
+    $('btnSubmit').disabled = false;
+    $('btnSubmit').textContent = '次へ';
+    recordRound(kind);
+    update();
+    $('status').innerHTML = '赤い丸 = 実際のエラー、赤い点線の輪 = 残差 (エラー×訂正) が残った量子ビット';
+  }
+
+  function flipText(cls) {
+    if (!cls.flips.length) return '';
+    const s = cls.flips.slice(0, 6).map(f => `論理量子ビット${f.q + 1}: ${f.X && f.Z ? 'Ȳ' : f.X ? 'X̄' : 'Z̄'}`).join(', ');
+    return ` <br>反転: <b>${s}</b>${cls.flips.length > 6 ? ' …' : ''}`;
+  }
+  function sparseStr(e) {
+    const parts = [];
+    for (let i = 0; i < e.x.length; i++) { const p = Q.pauliGet(e, i); if (p) parts.push(PN[p] + i); }
+    return parts.length ? parts.join(' ') : 'I';
+  }
+  function nextLabel() {
+    if (S.mode === 'free') return '次の問題';
+    return S.round + 1 >= S.level.rounds ? '結果を見る' : '次のラウンドへ';
+  }
+
+  function recordRound(kind) {
+    if (S.mode === 'free') {
+      S.free.total++; if (kind !== 'bad') S.free.ok++;
+      renderHeader();
+      return;
+    }
+    S.results[S.round] = { cls: kind };
+    renderHeader();
+  }
+
+  function nextRound() {
+    $('btnSubmit').textContent = '判定する';
+    if (S.mode === 'free') return newRound();
+    S.round++;
+    if (S.round >= S.level.rounds) return finishLevel();
+    newRound();
+  }
+
+  function finishLevel() {
+    const lv = S.level, n = lv.rounds;
+    const pass = S.results.filter(r => r.cls !== 'bad').length;
+    const need = Math.ceil(n * 2 / 3);
+    let st = 0;
+    if (pass >= need) st = 1;
+    if (pass === n) st = 2;
+    if (pass === n && !S.levelHint && S.weightOK) st = 3;
+    if (st > (progress[lv.id] || 0)) { progress[lv.id] = st; saveProgress(progress); }
+    const idx = LEVELS.indexOf(lv), nxt = LEVELS[idx + 1];
+    const msg = st === 0 ? `合格ラインは ${need}/${n} ラウンドです。もう一度挑戦しましょう。`
+      : st === 3 ? '完璧! ヒントなし・最小重みで全ラウンド成功。'
+      : st === 2 ? '全ラウンド成功! ★3 はヒントなし、かつデコーダ以下の重みで。'
+      : 'クリア! 全ラウンド成功で ★2。';
+    $('modalCard').innerHTML = `<div class="bigstars">${stars(st)}</div><h3>${lv.id} ${lv.title}</h3>
+      <p>${pass} / ${n} ラウンド合格</p><p style="color:var(--text2)">${msg}</p>
+      <div class="row" style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+      <button class="btn" id="mRetry">もう一度</button>${nxt ? '<button class="btn primary" id="mNext">次のステージ</button>' : ''}</div>`;
+    $('modal').hidden = false;
+    $('mRetry').onclick = () => { $('modal').hidden = true; loadLevel(lv); };
+    if (nxt) $('mNext').onclick = () => { $('modal').hidden = true; loadLevel(nxt); };
+    buildNav();
+  }
+
+  // ------------------------------------------------------------------ logical / matrix
+  function toggleLogical() {
+    if (!S.code) return;
+    const k = S.code.k;
+    S.logShow = S.logShow + 1;
+    if (S.logShow >= 2 * k) S.logShow = -1;
+    const b = $('btnLogical');
+    if (S.logShow < 0) { b.textContent = '論理演算子'; b.classList.remove('on'); }
+    else { b.textContent = `${S.logShow & 1 ? 'Z̄' : 'X̄'}${k > 1 ? (S.logShow >> 1) + 1 : ''} 表示中`; b.classList.add('on'); }
+    update();
+  }
+
+  function drawMatrix() {
+    const cv = $('matrix'), c = S.code;
+    if (!c) return;
+    const syn = currentSyndrome();
+    const cs = Math.max(3, Math.min(14, Math.floor(1000 / (c.n + 3))));
+    cv.width = (c.n + 3) * cs; cv.height = c.m * cs;
+    const ctx = cv.getContext('2d');
+    const css = getComputedStyle(document.documentElement);
+    const col = v => css.getPropertyValue(v).trim();
+    ctx.fillStyle = col('--bg'); ctx.fillRect(0, 0, cv.width, cv.height);
+    for (let j = 0; j < c.m; j++) {
+      const s = c.stabs[j];
+      for (const i of c.stabSupport[j]) {
+        const p = Q.pauliGet(s, i);
+        ctx.fillStyle = col(p === 1 ? '--x' : p === 2 ? '--z' : '--y');
+        ctx.fillRect(i * cs, j * cs, cs - (cs > 4 ? 1 : 0), cs - (cs > 4 ? 1 : 0));
+      }
+      ctx.fillStyle = syn[j] ? col('--warn') : col('--panel2');
+      ctx.fillRect((c.n + 1) * cs, j * cs, cs * 2 - 1, cs - (cs > 4 ? 1 : 0));
+    }
+    cv.title = `スタビライザー行列 (${c.m} 行 × ${c.n} 列)。青=X, 橙=Z, 紫=Y。右端=現在のシンドローム`;
+  }
+
+  // ------------------------------------------------------------------ spacetime level
+  function newSpacetimeRound() {
+    const lv = S.level;
+    const sample = Q.spacetimeSample(lv.d, lv.T, 0, 0, Math.random, lv.faults);
+    const events = [];
+    sample.det.forEach((row, t) => row.forEach((b, s) => b && events.push({ t, s })));
+    if (!events.length) return newSpacetimeRound();
+    S.st = { sample, events, pairs: [], sel: -1, showDec: false, mw: Q.spacetimeMWPM(sample) };
+    renderHeader();
+    renderSpacetime();
+    updateSpacetime();
+  }
+
+  function renderSpacetime() {
+    const { d, T } = S.level, svg = $('board');
+    svg.innerHTML = '';
+    const dy = 1.4;
+    const x0 = -3.2, y0 = -1.6, w = 2 * (d - 1) + 6.4, h = (T - 1) * dy + 4.2;
+    svg.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`);
+    const g = el('g', null, svg);
+    // boundaries
+    const bl = el('rect', { class: 'bound', x: -2.6, y: -0.8, width: 1.6, height: (T - 1) * dy + 1.6, rx: 0.3 }, g);
+    const br = el('rect', { class: 'bound', x: 2 * (d - 1) + 1, y: -0.8, width: 1.6, height: (T - 1) * dy + 1.6, rx: 0.3 }, g);
+    bl.onclick = () => clickBoundary('L'); br.onclick = () => clickBoundary('R');
+    const tl = el('text', { class: 'axislbl', x: -1.8, y: (T - 1) * dy + 1.25, 'text-anchor': 'middle' }, g); tl.textContent = '左境界';
+    const tr = el('text', { class: 'axislbl', x: 2 * (d - 1) + 1.8, y: (T - 1) * dy + 1.25, 'text-anchor': 'middle' }, g); tr.textContent = '右境界';
+    // data qubit columns
+    for (let q = 0; q < d; q++) {
+      el('line', { class: 'stdata', x1: 2 * q, y1: -0.8, x2: 2 * q, y2: (T - 1) * dy + 0.6 }, g);
+      const t = el('text', { class: 'axislbl', x: 2 * q, y: -1.0, 'text-anchor': 'middle' }, g); t.textContent = 'q' + q;
+    }
+    for (let t = 0; t < T; t++) {
+      const lab = el('text', { class: 'axislbl', x: x0 + 0.1, y: t * dy + 0.15 }, g);
+      lab.textContent = t === T - 1 ? '最終' : 't=' + (t + 1);
+      for (let s = 0; s < d - 1; s++) el('rect', { class: 'syncell', 'data-t': t, 'data-s': s, x: 2 * s + 1 - 0.5, y: t * dy - 0.5, width: 1, height: 1, rx: 0.15 }, g);
+    }
+    layers.st = { cells: g, pairs: el('g', null, svg), faults: el('g', null, svg), events: el('g', null, svg) };
+    S.st.evEls = S.st.events.map((e, k) => {
+      const eg = el('g', { class: 'ev' }, layers.st.events);
+      el('circle', { cx: 2 * e.s + 1, cy: e.t * dy, r: 0.34 }, eg);
+      eg.onclick = ev => { ev.stopPropagation(); clickEvent(k); };
+      return eg;
+    });
+    S.st.dy = dy;
+  }
+
+  function stPos(e) { return [2 * e.s + 1, e.t * S.st.dy]; }
+
+  function clickEvent(k) {
+    const st = S.st;
+    if (S.revealed) return;
+    const pi = st.pairs.findIndex(p => p.a === k || p.b === k);
+    if (pi >= 0) { st.pairs.splice(pi, 1); st.sel = -1; return updateSpacetime(); }
+    if (st.sel < 0) st.sel = k;
+    else if (st.sel === k) st.sel = -1;
+    else { st.pairs.push({ a: st.sel, b: k }); st.sel = -1; }
+    updateSpacetime();
+  }
+  function clickBoundary(side) {
+    const st = S.st;
+    if (S.revealed || st.sel < 0) return;
+    st.pairs.push({ a: st.sel, b: side }); st.sel = -1;
+    updateSpacetime();
+  }
+
+  function pairCost(p) {
+    const d = S.level.d, a = S.st.events[p.a];
+    if (p.b === 'L') return a.s + 1;
+    if (p.b === 'R') return d - 1 - a.s;
+    const b = S.st.events[p.b];
+    return Math.abs(a.t - b.t) + Math.abs(a.s - b.s);
+  }
+  function correctionFromPairs(pairs) {
+    const d = S.level.d, corr = new Uint8Array(d);
+    for (const p of pairs) {
+      const a = S.st.events[p.a];
+      if (p.b === 'L') { for (let q = 0; q <= a.s; q++) corr[q] ^= 1; continue; }
+      if (p.b === 'R') { for (let q = a.s + 1; q < d; q++) corr[q] ^= 1; continue; }
+      const b = S.st.events[p.b];
+      const i = Math.min(a.s, b.s), j = Math.max(a.s, b.s);
+      for (let q = i + 1; q <= j; q++) corr[q] ^= 1;
+    }
+    return corr;
+  }
+
+  function drawPairPath(layer, a, bpos, cls) {
+    // L-shaped path: vertical (time) then horizontal (space)
+    const pa = stPos(a);
+    const mid = [pa[0], bpos[1]];
+    el('path', { class: 'pairline ' + cls, fill: 'none', d: `M${pa[0]},${pa[1]}L${mid[0]},${mid[1]}L${bpos[0]},${bpos[1]}` }, layer);
+  }
+
+  function updateSpacetime() {
+    const st = S.st, { d } = S.level, L = layers.st;
+    L.cells.querySelectorAll('.syncell').forEach(c => {
+      const t = +c.dataset.t, s = +c.dataset.s;
+      c.classList.toggle('on', !!st.sample.synHist[t][s]);
+    });
+    L.pairs.innerHTML = '';
+    const bpos = (p, a) => p.b === 'L' ? [-1.4, stPos(a)[1]] : p.b === 'R' ? [2 * (d - 1) + 1.4, stPos(a)[1]] : stPos(st.events[p.b]);
+    st.pairs.forEach(p => drawPairPath(L.pairs, st.events[p.a], bpos(p, st.events[p.a]), ''));
+    if (st.showDec && st.mw) {
+      st.mw.pairs.forEach(([a, b]) => {
+        const ea = { t: a[0], s: a[1] };
+        const target = b ? stPos({ t: b[0], s: b[1] }) : (a[1] + 1 <= d - 1 - a[1] ? [-1.4, stPos(ea)[1]] : [2 * (d - 1) + 1.4, stPos(ea)[1]]);
+        drawPairPath(L.pairs, ea, target, 'dec');
+      });
+    }
+    const paired = new Set();
+    st.pairs.forEach(p => { paired.add(p.a); if (typeof p.b === 'number') paired.add(p.b); });
+    st.evEls.forEach((g, k) => { g.classList.toggle('sel', st.sel === k); g.classList.toggle('paired', paired.has(k)); });
+    L.faults.innerHTML = '';
+    if (S.revealed) {
+      st.sample.dataFlips.forEach((row, t) => row.forEach((b, q) => {
+        if (!b) return;
+        const tx = el('text', { class: 'faultmark', x: 2 * q, y: t * st.dy - st.dy / 2, style: 'fill: var(--bad)' }, L.faults);
+        tx.textContent = 'X';
+      }));
+      st.sample.measFlips.forEach((row, t) => row.forEach((b, s) => {
+        if (!b) return;
+        el('rect', { x: 2 * s + 1 - 0.55, y: t * st.dy - 0.55, width: 1.1, height: 1.1, rx: 0.2, fill: 'none', 'stroke-width': 0.08, style: 'stroke: var(--bad)' }, L.faults);
+      }));
+    }
+    const cost = st.pairs.reduce((a, p) => a + pairCost(p), 0);
+    const remaining = st.events.length - paired.size;
+    if (!S.revealed) {
+      $('status').innerHTML = `検出イベント <b>${st.events.length}</b> 個 ・ 未ペア <b>${remaining}</b> ・ あなたのマッチングの重み <b>${cost}</b>` +
+        (st.showDec ? ` ・ <span style="color:var(--warn)">黄の点線 = MWPM (重み ${st.mw.weight})</span>` : '') +
+        `<br><span style="color:var(--muted)">薄い橙のマス = 生のシンドローム(−1)。点 = 検出イベント(前の時刻との差)。</span>`;
+    }
+  }
+
+  function submitSpacetime() {
+    const st = S.st;
+    const paired = new Set();
+    st.pairs.forEach(p => { paired.add(p.a); if (typeof p.b === 'number') paired.add(p.b); });
+    if (paired.size < st.events.length) {
+      $('status').innerHTML = `<span style="color:var(--warn)">まだペアになっていない検出イベントがあります。</span>`;
+      return;
+    }
+    S.revealed = true;
+    const corr = correctionFromPairs(st.pairs);
+    const res = Q.xorInto(Uint8Array.from(st.sample.finalData), corr);
+    const ok = Q.weightOf(res) === 0;
+    const same = Q.weightOf(Q.xorInto(Uint8Array.from(corr), st.mw.correction)) === 0;
+    const cost = st.pairs.reduce((a, p) => a + pairCost(p), 0);
+    const kind = ok ? 'ok' : same ? 'meh' : 'bad';
+    if (cost > st.mw.weight) S.weightOK = false;
+    if (kind === 'bad') S.weightOK = false;
+    st.showDec = true;
+    const nd = st.sample.dataFlips.reduce((a, r) => a + Q.weightOf(r), 0), nm = st.sample.measFlips.reduce((a, r) => a + Q.weightOf(r), 0);
+    const r = $('result');
+    r.className = 'result ' + kind; r.hidden = false;
+    r.innerHTML = `<h4>${ok ? '成功! 最終データは正しく訂正されました' : same ? '不可避の失敗 (MWPM と同じ)' : '論理エラー! (全ビット反転 = X̄)'}</h4>
+      <div>実際の故障: データ X エラー <b>${nd}</b> 個 (赤い X)、測定エラー <b>${nm}</b> 個 (赤い枠)。横に伸びたペアの線がデータへの訂正、縦の線は測定エラーの解釈です。</div>
+      <div class="row"><span class="badge">あなたの重み ${cost}</span><span class="badge">MWPM ${st.mw.weight}</span></div>
+      <div class="pstr">最終データのエラー: ${Array.from(st.sample.finalData).join('')} ・ あなたの訂正: ${Array.from(corr).join('')}</div>
+      <div class="row"><button class="btn primary" id="btnNext">${nextLabel()}</button></div>`;
+    $('btnNext').onclick = nextRound;
+    $('btnSubmit').textContent = '次へ';
+    recordRound(kind);
+    updateSpacetime();
+    $('status').innerHTML = '青線 = あなたのペア、黄の点線 = MWPM、赤い X = データエラー、赤い枠 = 測定エラー';
+  }
+
+  // ------------------------------------------------------------------ free play
+  function startFree() {
+    const id = $('freeCode').value;
+    S.code = Q.getCode(id);
+    const type = $('freeNoise').value, mode = $('freeMode').value;
+    let t = type;
+    if (S.code.protects && type !== S.code.protects) { t = S.code.protects; $('freeNoise').value = t; }
+    const noise = mode === 'count' ? { type: t, mode, count: Math.max(1, Math.min(12, +$('freeCount').value || 1)), eta: 100 } : { type: t, mode, p: Math.max(0.001, Math.min(0.3, +$('freeP').value || 0.05)), eta: 100 };
+    S.level = { id: 'free', title: 'フリープレイ', code: id, noise, rounds: Infinity, tools: S.code.protects ? [S.code.protects === 'X' ? 1 : 2] : [1, 2, 3] };
+    S.free = { ok: 0, total: 0 }; S.logShow = -1; S.levelHint = false;
+    $('btnLogical').textContent = '論理演算子'; $('btnLogical').classList.remove('on');
+    renderLesson();
+    buildNav();
+    newRound();
+  }
+
+  // ------------------------------------------------------------------ wiring
+  function init() {
+    buildNav();
+    document.querySelectorAll('.tab').forEach(t => (t.onclick = () => showView(t.dataset.view)));
+    document.querySelectorAll('.tool').forEach(b => (b.onclick = () => { if (b.disabled) return; S.tool = +b.dataset.p; setTools(); }));
+    $('btnSubmit').onclick = submit;
+    $('btnHint').onclick = hint;
+    $('btnClear').onclick = () => {
+      if (S.revealed) return;
+      if (S.level.kind === 'spacetime') { S.st.pairs = []; S.st.sel = -1; return updateSpacetime(); }
+      S.corr = Q.pauliVec(S.code.n); update();
+    };
+    $('btnLogical').onclick = toggleLogical;
+    $('btnMatrix').onclick = () => {
+      S.matrixOn = !S.matrixOn; $('matrix').hidden = !S.matrixOn; $('btnMatrix').classList.toggle('on', S.matrixOn);
+      if (S.matrixOn) drawMatrix();
+    };
+    const fc = $('freeCode');
+    FREE_CODES.forEach(([id, name]) => { const o = document.createElement('option'); o.value = id; o.textContent = name; fc.appendChild(o); });
+    fc.value = 'surf5';
+    $('freeGo').onclick = startFree;
+    fc.onchange = startFree; $('freeNoise').onchange = startFree;
+    $('freeMode').onchange = () => { const c = $('freeMode').value === 'count'; $('freeCountWrap').hidden = !c; $('freePWrap').hidden = c; startFree(); };
+    $('modal').onclick = e => { if (e.target.id === 'modal') $('modal').hidden = true; };
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (!$('view-play').classList.contains('active')) return;
+      const k = e.key.toLowerCase();
+      const map = { '1': 1, x: 1, '2': 2, z: 2, '3': 3, y: 3 };
+      if (map[k]) { const b = document.querySelector(`.tool[data-p="${map[k]}"]`); if (b && !b.disabled) { S.tool = map[k]; setTools(); } }
+      else if (k === 'enter') { e.preventDefault(); if (!$('modal').hidden) return; submit(); }
+      else if (k === 'h') hint();
+      else if (k === 'escape') $('modal').hidden = true;
+    });
+    $('refs').innerHTML = REF_PAGE + Object.values(REFS).map(r => `<div class="ref">${r}</div>`).join('');
+    // start at first unfinished level
+    const first = LEVELS.find(l => !progress[l.id]) || LEVELS[0];
+    loadLevel(first);
+  }
+
+  init();
+  window.QEC_GAME = { state: S }; // for automated UI tests
+})();
+
+</script>
+<script>
+/* Threshold lab: Monte-Carlo logical error rate vs physical error rate (code-capacity noise, BP+OSD). */
+(function () {
+  'use strict';
+  const Q = window.QEC;
+  const $ = id => document.getElementById(id);
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const FAMILIES = {
+    surf: { codes: ['surf3', 'surf5', 'surf7'], labels: ['d=3', 'd=5', 'd=7'], ps: { depol: [0.03, 0.05, 0.08, 0.1, 0.12, 0.15, 0.18, 0.22], X: [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2] } },
+    color: { codes: ['steane', 'color5', 'color7'], labels: ['d=3', 'd=5', 'd=7'], ps: { depol: [0.03, 0.05, 0.08, 0.1, 0.12, 0.15, 0.18, 0.22], X: [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2] } },
+    rep: { codes: ['rep3', 'rep5', 'rep7'], labels: ['d=3', 'd=5', 'd=7'], forceX: true, ps: { X: [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5] } },
+    bb: { codes: ['bb72', 'bb90', 'gross'], labels: ['[[72,12,6]]', '[[90,8,10]]', '[[144,12,12]]'], ps: { depol: [0.02, 0.03, 0.04, 0.06, 0.08, 0.1, 0.13], X: [0.01, 0.02, 0.03, 0.04, 0.06, 0.08, 0.1] } },
+  };
+  const COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'];
+  let run = null, data = [];
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function trial(code, model, rng) {
+    const e = Q.sampleIID(code.n, model, rng);
+    const syn = code.syndrome(e);
+    if (Q.isZero(syn)) return !code.isStabilizer(e);
+    if (!code._tanner) code._tanner = Q.makeTanner(code.Hdec);
+    const pr = Q.pauliProbs(model), n = code.n, prior = new Float64Array(2 * n);
+    for (let i = 0; i < n; i++) { prior[i] = pr.X + pr.Y; prior[n + i] = pr.Z + pr.Y; }
+    const r = Q.bposd(code._tanner, syn, prior);
+    const res = Q.pauliMul(e, { x: r.e.slice(0, n), z: r.e.slice(n) });
+    return !code.classify(res).ok;
+  }
+
+  function start() {
+    stop();
+    const fam = FAMILIES[$('labFamily').value];
+    let noise = $('labNoise').value;
+    if (fam.forceX) { noise = 'X'; $('labNoise').value = 'X'; }
+    const ps = fam.ps[noise] || fam.ps.X;
+    const shots = +$('labShots').value;
+    data = fam.codes.map((id, si) => ({ id, label: fam.labels[si], code: Q.getCode(id), pts: ps.map(p => ({ p, fails: 0, shots: 0 })) }));
+    run = { fam, noise, shots, si: 0, pi: 0, rng: Q.rngFrom(12345), stopped: false };
+    $('labRun').disabled = true; $('labStop').disabled = false;
+    $('labNote').textContent = (noise === 'depol' ? '脱分極ノイズ' : 'ビット反転ノイズ') + `、各点 ${shots} 回。デコーダ: BP (min-sum) + OSD-CS。` +
+      (fam === FAMILIES.bb ? ' BB 符号は k 個の論理量子ビットのどれか1つでも反転したら失敗と数えます (ブロック論理エラー率)。' : '') +
+      ' BP+OSD は表面符号では MWPM や最尤デコーダより少し弱く、しきい値はやや低めに出ます。点線は p_L = p (符号化しない1量子ビット)。失敗 0 回の点はプロットしません (表を参照)。';
+    drawChart();
+    step();
+  }
+
+  function stop() {
+    if (run) run.stopped = true;
+    run = null;
+    $('labRun').disabled = false; $('labStop').disabled = true;
+  }
+
+  function step() {
+    if (!run || run.stopped) return;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 30) {
+      const s = data[run.si], pt = s.pts[run.pi];
+      const model = { type: run.noise, p: pt.p };
+      if (trial(s.code, model, run.rng)) pt.fails++;
+      pt.shots++;
+      if (pt.shots >= run.shots) {
+        run.pi++;
+        if (run.pi >= s.pts.length) { run.pi = 0; run.si++; }
+        drawChart();
+        if (run.si >= data.length) { $('labProg').textContent = '完了'; stop(); renderTable(); return; }
+      }
+    }
+    const done = data.reduce((a, s) => a + s.pts.reduce((b, p) => b + p.shots, 0), 0);
+    const total = data.length * data[0].pts.length * run.shots;
+    $('labProg').textContent = `${Math.round((100 * done) / total)}% — ${data[run.si].label}, p=${data[run.si].pts[run.pi].p}`;
+    renderTable();
+    setTimeout(step, 0);
+  }
+
+  function renderTable() {
+    const ps = data[0].pts.map(p => p.p);
+    let h = '<table><tr><th>p</th>' + data.map(s => `<th>${s.label}</th>`).join('') + '</tr>';
+    ps.forEach((p, i) => {
+      h += `<tr><td>${p}</td>` + data.map(s => {
+        const pt = s.pts[i];
+        if (!pt.shots) return '<td>—</td>';
+        return `<td>${pt.fails ? (pt.fails / pt.shots).toExponential(2) : '< ' + (1 / pt.shots).toExponential(1)} (${pt.fails}/${pt.shots})</td>`;
+      }).join('') + '</tr>';
+    });
+    $('labTable').innerHTML = h + '</table>';
+  }
+
+  function drawChart() {
+    const svg = $('labChart');
+    svg.innerHTML = '';
+    const W = svg.clientWidth || 800, H = svg.clientHeight || 420;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const m = { l: 62, r: 92, t: 14, b: 46 };
+    const ps = data[0].pts.map(p => p.p);
+    const xmin = Math.log10(ps[0] * 0.85), xmax = Math.log10(ps[ps.length - 1] * 1.15);
+    const ymin = -4, ymax = 0;
+    const X = p => m.l + ((Math.log10(p) - xmin) / (xmax - xmin)) * (W - m.l - m.r);
+    const Y = v => m.t + (1 - (Math.log10(v) - ymin) / (ymax - ymin)) * (H - m.t - m.b);
+    const ax = el('g', { class: 'axis' }, svg);
+    for (let e = ymin; e <= ymax; e++) {
+      el('line', { class: 'gridline', x1: m.l, x2: W - m.r, y1: Y(10 ** e), y2: Y(10 ** e) }, ax);
+      const t = el('text', { x: m.l - 8, y: Y(10 ** e) + 4, 'text-anchor': 'end' }, ax); t.textContent = '1e' + e;
+    }
+    ps.forEach(p => {
+      const t = el('text', { x: X(p), y: H - m.b + 18, 'text-anchor': 'middle' }, ax); t.textContent = p;
+    });
+    const xt = el('text', { class: 'axistitle', x: (m.l + W - m.r) / 2, y: H - 8, 'text-anchor': 'middle' }, svg); xt.textContent = '物理エラー率 p';
+    const yt = el('text', { class: 'axistitle', x: 14, y: (m.t + H - m.b) / 2, 'text-anchor': 'middle', transform: `rotate(-90 14 ${(m.t + H - m.b) / 2})` }, svg); yt.textContent = '論理エラー率 p_L';
+    // p_L = p reference
+    const pr0 = Math.max(ps[0] * 0.85, 1e-4), pr1 = ps[ps.length - 1] * 1.15;
+    el('line', { x1: X(pr0), y1: Y(pr0), x2: X(pr1), y2: Y(Math.min(pr1, 1)), stroke: 'var(--muted)', 'stroke-dasharray': '4 4', 'stroke-width': 1 }, svg);
+    const pts = [], ends = [];
+    data.forEach((s, si) => {
+      const valid = s.pts.filter(p => p.shots && p.fails);
+      if (valid.length > 1) {
+        el('path', { d: 'M' + valid.map(p => `${X(p.p)},${Y(p.fails / p.shots)}`).join('L'), fill: 'none', stroke: COLORS[si], 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+      }
+      valid.forEach(p => {
+        const cx = X(p.p), cy = Y(p.fails / p.shots);
+        el('circle', { cx, cy, r: 4, fill: COLORS[si], stroke: 'var(--surface-1)', 'stroke-width': 2 }, svg);
+        pts.push({ cx, cy, s, p });
+      });
+      if (valid.length) { const last = valid[valid.length - 1]; ends.push({ x: X(last.p) + 10, y: Y(last.fails / last.shots) + 4, label: s.label }); }
+    });
+    // direct labels at series ends, nudged apart so they never overlap
+    ends.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
+    ends.forEach(e => { const t = el('text', { x: e.x, y: e.y, fill: 'var(--text2)', 'font-size': 12 }, svg); t.textContent = e.label; });
+    $('labLegend').innerHTML = data.map((s, si) => `<span><i style="background:${COLORS[si]}"></i>${s.code.name}</span>`).join('') + '<span><i style="background:var(--muted)"></i>p_L = p</span>';
+    // hover
+    const tip = $('labTip');
+    svg.onmousemove = ev => {
+      const r = svg.getBoundingClientRect(), x = ((ev.clientX - r.left) * W) / r.width, y = ((ev.clientY - r.top) * H) / r.height;
+      let best = null, bd = 24;
+      pts.forEach(q => { const d = Math.hypot(q.cx - x, q.cy - y); if (d < bd) { bd = d; best = q; } });
+      if (!best) { tip.hidden = true; return; }
+      tip.hidden = false;
+      tip.innerHTML = `<b>${best.s.label}</b><br>p = ${best.p.p}<br>p<sub>L</sub> = ${(best.p.fails / best.p.shots).toExponential(2)} (${best.p.fails}/${best.p.shots})`;
+      tip.style.left = Math.min(ev.clientX - r.left + 12, r.width - 170) + 'px';
+      tip.style.top = ev.clientY - r.top + 12 + 'px';
+    };
+    svg.onmouseleave = () => (tip.hidden = true);
+  }
+
+  window.QEC_LAB = {
+    show() { if (!data.length) { const fam = FAMILIES.surf; data = fam.codes.map((id, si) => ({ id, label: fam.labels[si], code: Q.getCode(id), pts: fam.ps.depol.map(p => ({ p, fails: 0, shots: 0 })) })); } drawChart(); },
+  };
+  $('labRun').onclick = start;
+  $('labStop').onclick = stop;
+  $('labFamily').onchange = () => { $('labNoise').disabled = !!FAMILIES[$('labFamily').value].forceX; };
+  window.addEventListener('resize', () => { if (data.length && $('view-lab').classList.contains('active')) drawChart(); });
+})();
+
+</script>
+</body>
+</html>
