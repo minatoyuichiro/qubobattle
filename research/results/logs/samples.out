@@ -1,0 +1,9 @@
+data {'gen_bpc': 2.216826017142295, 'word_ok': 0.9539133889551052, 'uni_H': 4.271324440874366}
+loglinear_default_hybrid_s0 1.0 {'gen_bpc': 4.574022550159588, 'word_ok': 0.3618661257606491, 'uni_H': 4.239171336305523} herrists at use f crellin ity. hatery t's coconst, pain f em sur
+loglinear_default_hybrid_s0 0.8 {'gen_bpc': 4.609865104786241, 'word_ok': 0.3777955271565495, 'uni_H': 4.224771439177504} lear yof at uself ceeling not, hin to syst me bute ssin f on sor
+mlp_default_hybrid_s0 1.0 {'gen_bpc': 3.7951160101390573, 'word_ok': 0.5290652003142183, 'uni_H': 4.2403608289210375} herrists acruser. creling. ty, hi! it's's conughtt hain offersor
+mlp_default_hybrid_s0 0.8 {'gen_bpc': 3.776038655230022, 'word_ok': 0.5411719647644581, 'uni_H': 4.194977490782589} lermints at the hac elong. ty, han to crst me nute sain f retwor
+quantum_controllermlp_hybrid_s0 1.0 {'gen_bpc': 4.653049834422721, 'word_ok': 0.36098923015556444, 'uni_H': 4.217444655913127} herrist hat the e creling. ton h tery s's coconst, asin m guisur
+quantum_controllermlp_hybrid_s0 0.8 {'gen_bpc': 4.608388860674543, 'word_ok': 0.376953125, 'uni_H': 4.196610144895169} lear use at thelf creling. ton hin it crstimeonute asin f emisor
+quantum_default_hybrid_s0 1.0 {'gen_bpc': 5.017191135106116, 'word_ok': 0.3252765260139287, 'uni_H': 4.219843887405673} lerrint wat uhe f crellin ont. h tersturd conopettorain f emisur
+quantum_default_hybrid_s0 0.8 {'gen_bpc': 5.023906891696544, 'word_ok': 0.3317441398490266, 'uni_H': 4.204284013883613} ler? use at fre hac ell noutt. h a ry sk thmed ut ornin a em sor

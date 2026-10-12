@@ -1,0 +1,9 @@
+done: ../.venv/bin/python experiments/run.py loglinear 0 10000 results/main
+done: ../.venv/bin/python experiments/run.py mlp 0 10000 results/main
+done: ../.venv/bin/python experiments/verify.py
+done: ../.venv/bin/python experiments/run.py quantum 0 10000 results/main
+done: ../.venv/bin/python experiments/run.py loglinear 1 10000 results/main
+xargs: bash: terminated by signal 15
+done: ../.venv/bin/python experiments/run.py mlp 1 10000 results/main
+done: ../.venv/bin/python experiments/run.py quantum 1 10000 results/main
+done: ../.venv/bin/python experiments/run.py quantum 0 10000 results/main controller=mlp

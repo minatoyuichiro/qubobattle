@@ -1,0 +1,16 @@
+env LR=5e-4 ../.venv/bin/python experiments/run.py transformer 0 10000 results/main
+python experiments/run.py quantum 1 10000 results/main controller=mlp
+python experiments/run.py quantum 2 10000 results/main
+python experiments/run.py loglinear 2 10000 results/main
+python experiments/run.py mlp 2 10000 results/main
+python experiments/run.py quantum 2 10000 results/main controller=mlp
+python experiments/run.py quantum 0 10000 results/ablation depth=1
+python experiments/run.py quantum 0 10000 results/ablation depth=2
+python experiments/run.py quantum 0 10000 results/ablation depth=6
+python experiments/run.py quantum 0 10000 results/ablation connectivity=chain depth=16
+python experiments/run.py quantum 0 10000 results/ablation connectivity=chain depth=48
+python experiments/run.py quantum 0 10000 results/ablation envelope=False
+python experiments/run.py quantum 0 10000 results/ablation pairs=False
+python experiments/run.py loglinear 0 10000 results/ablation pairs=False
+python experiments/run.py quantum 0 10000 results/ablation loss=ce
+python experiments/run.py quantum 0 5000 results/ablation mode=reupload depth=1

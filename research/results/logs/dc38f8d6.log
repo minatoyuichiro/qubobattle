@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py quantum 0 10000 results/ablation envelope=False
+[quantum seed0] step 1000 ce 1.848 valid 3.8001 bpc (153s)
+[quantum seed0] step 2000 ce 1.854 valid 3.7387 bpc (326s)
+[quantum seed0] step 3000 ce 1.843 valid 3.6645 bpc (496s)
+[quantum seed0] step 4000 ce 1.839 valid 3.5932 bpc (660s)
+[quantum seed0] step 5000 ce 1.823 valid 3.5306 bpc (832s)
+[quantum seed0] step 6000 ce 1.806 valid 3.4672 bpc (1073s)
+[quantum seed0] step 7000 ce 1.803 valid 3.4183 bpc (1313s)
+[quantum seed0] step 8000 ce 1.798 valid 3.3792 bpc (1541s)
+[quantum seed0] step 9000 ce 1.809 valid 3.3581 bpc (1739s)
+[quantum seed0] step 10000 ce 1.781 valid 3.3541 bpc (1852s)
+[quantum_envelopeFalse_hybrid_s0] TEST 3.3987 bpc, params 1647360

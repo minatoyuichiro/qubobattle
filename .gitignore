@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+research/results/ckpt/
+research/paper/*.aux
+research/paper/*.log
+research/paper/*.bbl
+research/paper/*.blg
+research/paper/*.out
+research/paper/*.fls
+research/paper/*.fdb_latexmk
+research/results/**/ckpt/
+research/results/**/*.pt

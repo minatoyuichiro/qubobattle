@@ -1,0 +1,37 @@
+clean                                    bpc 3.3672 accept 1.0000
+angle_rel 0.005                          bpc 3.3675 accept 1.0000
+angle_rel 0.01                           bpc 3.3683 accept 1.0000
+angle_rel 0.02                           bpc 3.3712 accept 1.0000
+angle_rel 0.05                           bpc 3.3962 accept 1.0000
+angle_rel 0.1                            bpc 3.4930 accept 1.0000
+angle_rel 0.2                            bpc 3.8865 accept 1.0000
+dephase 0.003                            bpc 3.3672 accept 1.0000
+dephase 0.01                             bpc 3.3674 accept 1.0000
+dephase 0.03                             bpc 3.3697 accept 1.0000
+dephase 0.1                              bpc 3.3966 accept 1.0000
+dephase 0.3                              bpc 3.7268 accept 1.0000
+damp 0.001 post                          bpc 3.3672 accept 0.9844
+damp 0.001 nocheck                       bpc 3.4395 accept 0.9844
+damp 0.001 uniform post                  bpc 3.3672 accept 0.9851
+damp 0.003 post                          bpc 3.3673 accept 0.9539
+damp 0.003 nocheck                       bpc 3.6095 accept 0.9539
+damp 0.003 uniform post                  bpc 3.3672 accept 0.9559
+damp 0.01 post                           bpc 3.3676 accept 0.8542
+damp 0.01 nocheck                        bpc 4.2465 accept 0.8542
+damp 0.01 uniform post                   bpc 3.3672 accept 0.8601
+damp 0.03 post                           bpc 3.3700 accept 0.6214
+damp 0.03 nocheck                        bpc 6.0360 accept 0.6214
+damp 0.03 uniform post                   bpc 3.3672 accept 0.6333
+damp 0.1 post                            bpc 3.3987 accept 0.1979
+damp 0.1 nocheck                         bpc 10.7107 accept 0.1979
+damp 0.1 uniform post                    bpc 3.3672 accept 0.2059
+readout 0.001 onehot                     bpc 3.3672 accept 0.9685
+readout 0.001 binary                     bpc 3.3917 accept 1.0000
+readout 0.003 onehot                     bpc 3.3678 accept 0.9086
+readout 0.003 binary                     bpc 3.4471 accept 1.0000
+readout 0.01 onehot                      bpc 3.3788 accept 0.7273
+readout 0.01 binary                      bpc 3.6548 accept 1.0000
+readout 0.03 onehot                      bpc 3.5126 accept 0.3885
+readout 0.03 binary                      bpc 4.2795 accept 1.0000
+readout 0.05 onehot                      bpc 3.8161 accept 0.2103
+readout 0.05 binary                      bpc 4.9116 accept 1.0000

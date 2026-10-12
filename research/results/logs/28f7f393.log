@@ -1,0 +1,14 @@
+env LR=5e-4 ../.venv/bin/python experiments/run.py transformer 0 10000 results/main
+/home/user/qubobattle/research/qxdlm/models.py:161: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(layer, layers)
+[transformer seed0] step 1000 ce 1.831 valid 4.2767 bpc (561s)
+[transformer seed0] step 2000 ce 1.821 valid 4.2685 bpc (955s)
+[transformer seed0] step 3000 ce 1.812 valid 4.2659 bpc (1282s)
+[transformer seed0] step 4000 ce 1.810 valid 4.2509 bpc (1613s)
+[transformer seed0] step 5000 ce 1.811 valid 4.2478 bpc (1944s)
+[transformer seed0] step 6000 ce 1.811 valid 4.2427 bpc (2268s)
+[transformer seed0] step 7000 ce 1.819 valid 4.2387 bpc (2595s)
+[transformer seed0] step 8000 ce 1.824 valid 4.2338 bpc (2929s)
+[transformer seed0] step 9000 ce 1.836 valid 4.2326 bpc (3263s)
+[transformer seed0] step 10000 ce 1.812 valid 4.2323 bpc (3595s)
+[transformer_default_hybrid_s0] TEST 4.2386 bpc, params 813984

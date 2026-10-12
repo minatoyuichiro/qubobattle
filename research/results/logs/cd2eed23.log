@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py loglinear 1 10000 results/main
+[loglinear seed1] step 1000 ce 1.660 valid 3.2108 bpc (18s)
+[loglinear seed1] step 2000 ce 1.660 valid 3.1329 bpc (35s)
+[loglinear seed1] step 3000 ce 1.654 valid 3.1095 bpc (53s)
+[loglinear seed1] step 4000 ce 1.651 valid 3.1049 bpc (69s)
+[loglinear seed1] step 5000 ce 1.633 valid 3.0975 bpc (86s)
+[loglinear seed1] step 6000 ce 1.636 valid 3.0940 bpc (105s)
+[loglinear seed1] step 7000 ce 1.651 valid 3.0875 bpc (122s)
+[loglinear seed1] step 8000 ce 1.635 valid 3.0854 bpc (138s)
+[loglinear seed1] step 9000 ce 1.622 valid 3.0844 bpc (155s)
+[loglinear seed1] step 10000 ce 1.631 valid 3.0844 bpc (171s)
+[loglinear_default_hybrid_s1] TEST 3.1298 bpc, params 219648

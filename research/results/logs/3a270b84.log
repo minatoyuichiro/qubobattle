@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py quantum 0 5000 results/ablation mode=reupload depth=1
+[quantum seed0] step 500 ce 1.832 valid 3.8762 bpc (303s)
+[quantum seed0] step 1000 ce 1.809 valid 3.7516 bpc (615s)
+[quantum seed0] step 1500 ce 1.808 valid 3.6913 bpc (939s)
+[quantum seed0] step 2000 ce 1.793 valid 3.6506 bpc (1258s)
+[quantum seed0] step 2500 ce 1.806 valid 3.6118 bpc (1571s)
+[quantum seed0] step 3000 ce 1.772 valid 3.5834 bpc (1872s)
+[quantum seed0] step 3500 ce 1.774 valid 3.5620 bpc (2175s)
+[quantum seed0] step 4000 ce 1.765 valid 3.5465 bpc (2488s)
+[quantum seed0] step 4500 ce 1.752 valid 3.5385 bpc (2809s)
+[quantum seed0] step 5000 ce 1.764 valid 3.5373 bpc (3119s)
+[quantum_depth1-modereupload_hybrid_s0] TEST 3.5780 bpc, params 549120

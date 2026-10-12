@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py quantum 1 10000 results/main
+[quantum seed1] step 1000 ce 1.849 valid 3.7629 bpc (115s)
+[quantum seed1] step 2000 ce 1.851 valid 3.6481 bpc (230s)
+[quantum seed1] step 3000 ce 1.831 valid 3.5506 bpc (347s)
+[quantum seed1] step 4000 ce 1.812 valid 3.4965 bpc (463s)
+[quantum seed1] step 5000 ce 1.775 valid 3.4412 bpc (577s)
+[quantum seed1] step 6000 ce 1.769 valid 3.3999 bpc (713s)
+[quantum seed1] step 7000 ce 1.774 valid 3.3628 bpc (926s)
+[quantum seed1] step 8000 ce 1.749 valid 3.3378 bpc (1105s)
+[quantum seed1] step 9000 ce 1.731 valid 3.3271 bpc (1281s)
+[quantum seed1] step 10000 ce 1.742 valid 3.3251 bpc (1407s)
+[quantum_default_hybrid_s1] TEST 3.3702 bpc, params 1647360

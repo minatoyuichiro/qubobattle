@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py quantum 2 10000 results/main controller=mlp
+[quantum seed2] step 1000 ce 1.825 valid 3.6569 bpc (140s)
+[quantum seed2] step 2000 ce 1.759 valid 3.4790 bpc (277s)
+[quantum seed2] step 3000 ce 1.735 valid 3.3984 bpc (416s)
+[quantum seed2] step 4000 ce 1.701 valid 3.3216 bpc (555s)
+[quantum seed2] step 5000 ce 1.706 valid 3.2650 bpc (691s)
+[quantum seed2] step 6000 ce 1.688 valid 3.2211 bpc (836s)
+[quantum seed2] step 7000 ce 1.688 valid 3.1897 bpc (977s)
+[quantum seed2] step 8000 ce 1.661 valid 3.1596 bpc (1116s)
+[quantum seed2] step 9000 ce 1.663 valid 3.1456 bpc (1259s)
+[quantum seed2] step 10000 ce 1.680 valid 3.1428 bpc (1400s)
+[quantum_controllermlp_hybrid_s2] TEST 3.1819 bpc, params 1763040

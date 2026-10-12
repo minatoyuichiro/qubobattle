@@ -1,0 +1,57 @@
+\section{Discussion}
+\paragraph{What the exchange read-out costs.} With identical features and controllers, replacing the
+softmax by an exchange circuit plus a Born-rule measurement costs about $0.25$~bits/char
+(linear controller: $3.38$ vs.\ $3.13$; MLP controller: $3.18$ vs.\ $2.92$). This happens even though
+the circuit has more parameters, and Proposition~\ref{prop:reach} guarantees that every output
+distribution is reachable. The gap is therefore one of \emph{parameterisation and optimisation}, not of
+reachability. A softmax combines feature contributions additively in log space, i.e.\ as a product of
+experts. Additive pulse areas instead interfere through a deep, periodic, non-commuting map, and the
+sum rule of Prop.~\ref{prop:dark} couples all output amplitudes. The per-step decomposition
+(Fig.~\ref{fig:per_t}) shows where the loss is incurred. Depth helps but saturates
+(Table~\ref{tab:ablation}). Data re-uploading, which composes feature blocks non-commutatively, matched but did not beat additive
+angles with the same block size, at much larger depth. The exchange envelope $J(t)$, which lets the device
+turn its pulses off at low noise, gives a small but consistent gain ($0.024$~bits/char).
+
+\paragraph{What the exchange read-out buys.} The read-out is native. Sampling requires one shot per token
+per step, and the one-hot register makes the dominant hardware errors \emph{detectable}.
+Relaxation, the most damaging channel without a check, becomes almost harmless with post-selection. It
+is exactly harmless when rates are uniform. A single readout flip can never silently change a token.
+For realistic readout errors ($q\approx10^{-2}$) the one-hot register loses $0.01$~bits/char, compared
+with $0.29$ for a dense binary code (Fig.~\ref{fig:noise}). The model is also insensitive to
+percent-level exchange miscalibration and to dephasing below $0.1$~rad per layer. These are regimes
+reported for current silicon devices \citep{burkard2023semiconductor}.
+
+\paragraph{Hardware cost.} One token per denoising step needs $V=32$ spins and, in the default
+butterfly, 15 exchange layers (240 pulses). On a linear dot array the light cone forces at least $V-1$
+brick-wall layers, and the 48-layer chain (744 pulses) matches the 240-pulse butterfly in quality. Positions
+are conditionally independent within a step, so $L$ registers run in parallel and generation takes $T$
+rounds of measure-and-reset. Butterfly connectivity needs long-range exchange (e.g.\ via shuttling).
+
+\paragraph{Limitations.}
+(i) \emph{Classical simulability.} A single excitation evolves like a single particle, so every result
+here can be reproduced classically in $O(VG)$ time; this is how we trained. We make no claim of quantum
+advantage. A natural extension that leaves the classically simulable regime is to let $k>1$ tokens
+share one register. The Hamming-weight-$k$ sector has dimension $\binom{V}{k}$ and is still preserved by
+exchange.
+(ii) \emph{Local context.} All denoisers here see a fixed window of $\pm4$ noisy characters plus pair
+features. Absolute numbers are therefore far from autoregressive models with longer context: an
+interpolated Kneser--Ney 5-gram reaches $2.11$~bits/char on the same split \citep{chen1999empirical}.
+We also trained a bidirectional Transformer denoiser with global context. Within our CPU budget it
+stalled at the ``copy $x_t$ + unigram'' solution (test NELBO $4.23$~bits/char). We report it only in
+the released logs, because it is not a well-tuned reference.
+(iii) \emph{Small scale.} One corpus (\texttt{fortunes}, $2\times10^6$ characters), $V=32$ and $T=32$
+steps. Uniform-transition diffusion is known to trail absorbing-state (masked) diffusion for text
+\citep{austin2021structured,sahoo2024simple}. An exchange-only analogue of the absorbing state, for
+example a dedicated ``mask'' qubit, is a natural next step.
+(iv) \emph{Noise models.} Noise was injected at inference time into a model trained noise-free. We did
+not model crosstalk, leakage out of the qubit manifold, or state-preparation errors.
+
+\section{Conclusion}
+A discrete diffusion language model can be built from the exchange interaction alone. Tokens are single
+spin excitations, corruption is spin shuffling, and denoising is a context-controlled exchange circuit
+read out by the Born rule. The exchange group on the token register is $\mathrm{U}(1)\oplus\mathrm{U}(V-1)$,
+fixed by spin symmetry. It is small enough to avoid barren plateaus, yet large enough to reach every
+categorical distribution. At equal features the exchange read-out trails a softmax by about $0.25$
+bits/char. In return it comes with native one-shot sampling and built-in detection of relaxation and
+readout errors. We hope these exact, reproducible baselines help calibrate claims about quantum
+generative models of language.

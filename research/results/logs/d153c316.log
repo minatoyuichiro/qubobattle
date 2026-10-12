@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py loglinear 0 10000 results/ablation pairs=False
+[loglinear seed0] step 1000 ce 1.696 valid 3.4860 bpc (13s)
+[loglinear seed0] step 2000 ce 1.682 valid 3.3902 bpc (26s)
+[loglinear seed0] step 3000 ce 1.673 valid 3.3749 bpc (39s)
+[loglinear seed0] step 4000 ce 1.677 valid 3.3698 bpc (52s)
+[loglinear seed0] step 5000 ce 1.678 valid 3.3644 bpc (65s)
+[loglinear seed0] step 6000 ce 1.675 valid 3.3632 bpc (78s)
+[loglinear seed0] step 7000 ce 1.684 valid 3.3610 bpc (91s)
+[loglinear seed0] step 8000 ce 1.689 valid 3.3585 bpc (104s)
+[loglinear seed0] step 9000 ce 1.704 valid 3.3581 bpc (117s)
+[loglinear seed0] step 10000 ce 1.679 valid 3.3581 bpc (129s)
+[loglinear_pairsFalse_hybrid_s0] TEST 3.4111 bpc, params 45408

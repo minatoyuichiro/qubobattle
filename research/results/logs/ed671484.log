@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py quantum 0 10000 results/main controller=mlp
+[quantum seed0] step 1000 ce 1.806 valid 3.6484 bpc (146s)
+[quantum seed0] step 2000 ce 1.774 valid 3.6065 bpc (289s)
+[quantum seed0] step 3000 ce 1.729 valid 3.3922 bpc (437s)
+[quantum seed0] step 4000 ce 1.722 valid 3.3325 bpc (585s)
+[quantum seed0] step 5000 ce 1.699 valid 3.2676 bpc (729s)
+[quantum seed0] step 6000 ce 1.685 valid 3.2234 bpc (941s)
+[quantum seed0] step 7000 ce 1.683 valid 3.1758 bpc (1183s)
+[quantum seed0] step 8000 ce 1.684 valid 3.1576 bpc (1411s)
+[quantum seed0] step 9000 ce 1.695 valid 3.1400 bpc (1572s)
+[quantum seed0] step 10000 ce 1.669 valid 3.1366 bpc (1718s)
+[quantum_controllermlp_hybrid_s0] TEST 3.1718 bpc, params 1763040

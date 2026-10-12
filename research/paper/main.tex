@@ -1,0 +1,52 @@
+\documentclass[10pt,twocolumn]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\makeatletter\let\tabinput\@@input\makeatother
+\usepackage{graphicx,booktabs,multirow,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{braket}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,decorations.pathreplacing}
+\usepackage{natbib}
+\usepackage{caption}
+\captionsetup{font=small}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\SWAP}{\mathrm{SWAP}}
+
+\title{Exchange-Only Quantum Discrete Diffusion for Language Modeling}
+\author{Yuichiro Minato\\ \small blueqat Inc.}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We build a discrete diffusion language model whose only quantum operation is the Heisenberg exchange
+interaction, the native gate of semiconductor spin qubits. Each token is a single spin excitation among
+$V$ qubits. The uniform D3PM corruption process is realised exactly as a random spin-shuffling
+(SWAP) channel, and the denoiser is an exchange circuit whose pulse areas are set by the noisy context.
+Measuring the circuit samples the clean token by the Born rule, so ancestral sampling needs a single shot
+per token and step. We show that exchange acts on the token register through the dynamical Lie algebra
+$\mathfrak u(V-1)$: the $W$ state is dark, and every output obeys an amplitude sum rule. Nevertheless,
+every categorical distribution remains reachable, and nearest-neighbour hardware needs depth of at
+least $V-1$. Using an exact simulator for 32-qubit registers, we train character-level models on
+$2\times10^6$ characters and compare them with classical denoisers that use identical features. The
+exchange read-out reaches $3.38\pm0.01$ (linear controller) and $3.18\pm0.01$ (MLP controller)
+bits/char, about $0.25$~bits/char behind softmax read-outs ($3.13$ and $2.92$). In return, the one-hot
+register makes relaxation and single readout flips detectable. Under exactly simulated noise, a 1\%
+readout error costs $0.012$~bits/char with a Hamming-weight check versus $0.29$ for a binary code. With
+the same check, relaxation affecting 80\% of shots costs only $0.03$~bits/char. The model is classically
+simulable by construction, so we claim no quantum advantage; all code and results are released.
+\end{abstract}
+
+\input{sec_method}
+\input{sec_results}
+\input{sec_discussion}
+
+\bibliographystyle{unsrtnat}
+\bibliography{refs}
+\end{document}

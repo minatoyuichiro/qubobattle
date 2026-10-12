@@ -1,0 +1,237 @@
+\section{Introduction}
+Diffusion models \citep{sohl2015deep,ho2020denoising} have been extended to discrete data by
+replacing Gaussian noise with Markov transition matrices on a finite vocabulary
+\citep{austin2021structured,hoogeboom2021argmax}, and discrete diffusion is now a competitive
+non-autoregressive approach to language modeling \citep{lou2024discrete,sahoo2024simple}.
+In parallel, several quantum versions of diffusion models have been proposed, in which either the data
+are quantum states or the denoiser is a parameterised quantum circuit
+\citep{zhang2024generative,parigi2023quantum,cacioppo2023quantum,kolle2024quantum}.
+These proposals generally assume a universal gate set with arbitrary single-qubit rotations.
+
+This paper asks a hardware-driven question: \emph{how far can a discrete diffusion language model go
+if the only operation available is the Heisenberg exchange interaction?} Exchange is the native
+two-qubit interaction of semiconductor spin qubits \citep{loss1998quantum,burkard2023semiconductor}.
+``Exchange-only'' architectures avoid fast single-spin control altogether and recover universality by
+encoding logical qubits in several spins \citep{divincenzo2000universal,weinstein2023universal}.
+Here we take a different route. We do not try to recover universality. Instead, we pick a data
+encoding in which exchange alone is already the natural set of operations for a categorical
+distribution over tokens.
+
+\paragraph{Idea.} A token from a vocabulary of size $V$ is stored as a single spin excitation among
+$V$ qubits (one-hot or unary encoding). Exchange conserves the number of excitations, so every exchange
+circuit acts inside the $V$-dimensional single-excitation sector. There it implements a unitary
+``mixing'' of tokens. A random exchange (SWAP) channel corrupts tokens exactly as the uniform D3PM forward
+process does. A trained, context-dependent exchange circuit followed by a computational-basis
+measurement samples the denoised token by the Born rule.
+
+\paragraph{Contributions.}
+(i) We formulate an exchange-only quantum discrete diffusion model (QXDM) with a one-hot token
+register, an exchange-channel forward process, a Born-rule denoiser and measurement-based ancestral
+sampling that needs \emph{one shot per token per step}.
+(ii) We characterise its expressivity. The dynamical Lie algebra on the token register is
+$\mathfrak{u}(V\!-\!1)$, and the $W$ state is a dark state. This imposes an exact amplitude sum rule.
+Despite this, every categorical distribution remains reachable as a single Born-rule output, and
+nearest-neighbour hardware has a light-cone depth requirement.
+(iii) We give an exact and efficient simulator (single-excitation dynamics are classically simulable)
+and use it to train character-level models on $2\times 10^6$ characters. We compare them with
+classical denoisers that share the same features.
+(iv) We study realistic exchange-only noise. Charge noise, dephasing, relaxation and readout errors
+are all simulated exactly. The one-hot encoding turns relaxation and single readout flips into
+\emph{detectable} errors through a Hamming-weight check.
+
+We stress at the outset that the model class studied here is classically simulable by construction,
+so we make no claim of quantum advantage. Our goal is a hardware-native, verifiable baseline. It shows
+what an exchange-only device can and cannot express when it is used as the stochastic core of a
+generative language model.
+
+\section{Background}
+\paragraph{Uniform discrete diffusion.}
+Let $x_0\in\{1,\dots,V\}^L$ be a sequence. The uniform forward process corrupts each token
+independently,
+$q(x_t\,|\,x_{t-1}) = \mathrm{Cat}\big(\alpha_t e_{x_{t-1}} + (1-\alpha_t)\mathbf{1}/V\big)$,
+so that $q(x_t|x_0)=\mathrm{Cat}(\bar\alpha_t e_{x_0}+(1-\bar\alpha_t)\mathbf{1}/V)$ with
+$\bar\alpha_t=\prod_{s\le t}\alpha_s$ \citep{austin2021structured,hoogeboom2021argmax}. We use $T=32$
+steps, a cosine schedule and $\bar\alpha_T=0$, so $x_T$ is exactly uniform. A denoiser
+$p_\theta(x_0|x_t)$ defines the reverse kernel
+\begin{equation}
+p_\theta(x_{t-1}|x_t)=\sum_{\hat x_0} p_\theta(\hat x_0|x_t)\, q(x_{t-1}|x_t,\hat x_0),
+\label{eq:rev}
+\end{equation}
+factorised over positions. The negative evidence lower bound (NELBO) is
+$\sum_{t\ge2}\E\,\mathrm{KL}\big(q(x_{t-1}|x_t,x_0)\,\|\,p_\theta(x_{t-1}|x_t)\big)
+-\E\log p_\theta(x_0|x_1)$. The prior term vanishes because $\bar\alpha_T=0$. Eq.~\eqref{eq:rev} is
+exactly the law of ``draw $\hat x_0\sim p_\theta(\cdot|x_t)$, then draw $x_{t-1}$ from the analytic
+posterior''. This is what makes a sampling-only (Born-rule) denoiser natural.
+
+\paragraph{Exchange interaction.}
+For spins $a,b$ the isotropic exchange Hamiltonian is
+$H_{ab}=\tfrac{J}{4}\,\bm\sigma_a\!\cdot\!\bm\sigma_b$, which equals $\tfrac{J}{2}\SWAP_{ab}$ up
+to a constant. A pulse therefore implements
+\begin{equation}
+E_{ab}(\theta)=e^{-i\theta\,\SWAP_{ab}}=\cos\theta\,\mathbb 1-i\sin\theta\,\SWAP_{ab},
+\end{equation}
+with $\theta=\int J\,dt/2$. Exchange commutes with every global spin rotation, so it conserves both the
+total spin $S^2$ and the magnetisation $S_z$ \citep{divincenzo2000universal,marvian2022restrictions}.
+
+\section{Exchange-only quantum discrete diffusion}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.62cm,y=0.33cm,font=\scriptsize]
+  \foreach \q in {0,...,7} {\draw[gray!60] (0,-\q) -- (9.2,-\q);}
+  \node[left] at (0,0) {$q_1$}; \node[left] at (0,-7) {$q_V$};
+  \fill[orange] (0.35,-2) circle (3pt); \node[above right] at (0.35,-2) {$\ket{x_t}$};
+  % butterfly layers
+  \foreach \l/\s in {1/1,2/2,3/4} {
+    \foreach \a in {0,...,7} {
+      \pgfmathtruncatemacro{\bit}{mod(floor(\a/\s),2)}
+      \ifnum\bit=0
+        \pgfmathsetmacro{\xx}{\l*2.0+0.12*mod(\a,4)}
+        \draw[blue!70,line width=0.9pt] (\xx,-\a) -- (\xx,-\a-\s);
+        \fill[blue!70] (\xx,-\a) circle (1.2pt); \fill[blue!70] (\xx,-\a-\s) circle (1.2pt);
+      \fi
+    }
+  }
+  \node[blue!70] at (4.35,1.6) {$e^{-i\theta_g(\mathrm{ctx},t)\,\mathrm{SWAP}}$};
+  \draw[decorate,decoration={brace,amplitude=3pt}] (1.7,0.5) -- (7.0,0.5);
+  \foreach \q in {0,...,7} {\draw (8.3,-\q-0.3) rectangle (8.9,-\q+0.3); \node at (8.6,-\q) {\tiny$z$};}
+  \node[right,align=left] at (9.2,-3.5) {weight-1\\check\\$\Rightarrow\hat x_0$};
+  \node[align=center] at (4.5,-8.6) {context $x_t^{i\pm1,\dots}$, $t$ $\to$ angles $\bm\theta$ (classical, linear or MLP)};
+\end{tikzpicture}
+\caption{Exchange-only denoiser for one token. The noisy token $x_t^i$ is loaded as a single excitation
+on $V$ qubits. Layers of exchange pulses with context-dependent angles (here a butterfly network, i.e.\
+$\log_2 V$ layers per block) act inside the single-excitation sector. A $z$-basis measurement with a
+Hamming-weight check returns $\hat x_0\sim|\braket{\hat x_0|U|x_t^i}|^2$, which is fed to the analytic
+posterior $q(x_{t-1}|x_t,\hat x_0)$.}
+\label{fig:schematic}
+\end{figure}
+
+\subsection{Token register}
+Each sequence position owns a register of $V$ qubits. The token $k$ is stored as
+$\ket{e_k}=\ket{0\cdots010\cdots0}$ (excitation on qubit $k$). Let $\mathcal H_1=\mathrm{span}\{\ket{e_k}\}$.
+
+\begin{lemma}[Exchange on the token register]\label{lem:block}
+$E_{ab}(\theta)$ leaves $\mathcal H_1$ invariant. On $\mathcal H_1$,
+$E_{ab}(\theta)=e^{-i\theta}\exp(i\theta L_{ab})$, with the edge Laplacian
+$L_{ab}=(e_a-e_b)(e_a-e_b)^{\!\top}$. Explicitly, up to the global phase the gate acts as
+$\begin{psmallmatrix}u&v\\v&u\end{psmallmatrix}$ on $(e_a,e_b)$, where $u=e^{i\theta}\cos\theta$ and
+$v=-ie^{i\theta}\sin\theta$, and as the identity on all other $e_k$.
+\end{lemma}
+\begin{proof}
+$\SWAP_{ab}$ permutes $e_a\leftrightarrow e_b$ and fixes the other $e_k$, so on $\mathcal H_1$ we have
+$\SWAP_{ab}=\mathbb 1-L_{ab}$. Since $L_{ab}^2=2L_{ab}$,
+$e^{i\theta L_{ab}}=\mathbb 1+\tfrac{e^{2i\theta}-1}{2}L_{ab}$, which gives the stated entries.
+\end{proof}
+Thus a circuit of $G$ exchange pulses is simulated exactly in $O(G)$ time per basis input. Every gate
+updates two amplitudes: $\psi_a\!\leftarrow\!\psi_a-\Delta$ and $\psi_b\!\leftarrow\!\psi_b+\Delta$, with
+$\Delta=(\sin^2\theta-i\sin\theta\cos\theta)(\psi_a-\psi_b)$. We checked Lemma~\ref{lem:block} against a
+full $2^n$-dimensional state-vector simulation with the Heisenberg Hamiltonian
+(Table~\ref{tab:verify}).
+
+\subsection{Forward process as an exchange channel}
+\begin{proposition}\label{prop:forward}
+Let $\Phi_t(\rho)=(1-\beta_t)\rho+\beta_t\,\E_{\pi\sim S_V}[P_\pi\rho P_\pi^\dagger]$, where $P_\pi$
+permutes qubits according to a uniformly random permutation. With $\beta_t=1-\alpha_t$, the induced
+transition on one-hot states is the uniform D3PM kernel $q(x_t|x_{t-1})$.
+\end{proposition}
+\begin{proof}
+Every permutation is a product of transpositions, i.e.\ full-SWAP exchange pulses $E_{ab}(\pi/2)$ up to
+phase. $P_\pi\ket{e_k}=\ket{e_{\pi(k)}}$, and $\pi(k)$ is uniform over $\{1..V\}$ for a uniform $\pi$.
+\end{proof}
+The forward process is therefore physically an exchange (``spin-shuffling'') channel. Training never
+has to run it on hardware, because $q(x_t|x_0)$ has a closed form.
+
+\subsection{Exchange-circuit denoiser}
+For position $i$ we load $\ket{e_{x_t^i}}$, apply $U_{\bm\theta}=\prod_g E_{a_gb_g}(\theta_g)$ and
+measure. Hence
+\begin{equation}
+p_{\bm\theta}(\hat x_0=k\,|\,x_t,t)=\big|\braket{e_k|U_{\bm\theta(x_t,t)}|e_{x_t^i}}\big|^2 .
+\end{equation}
+The pulse angles are set by a classical controller from sparse features of the \emph{noisy} context:
+the tokens at offsets $-4..4$, five neighbour pairs, the time step $t$, and the joint feature
+$(t,x_t^i)$. In the \emph{linear} controller, $\theta_g=J_g(t)\sum_{f\in\mathrm{active}}W_{f,g}$, i.e.\
+a sum of learned per-feature pulse areas. The \emph{exchange envelope} $J_g(t)$ scales all pulses at
+noise level $t$. When $J\to0$ we get $U\to\mathbb 1$, which implements ``copy $x_t$'' at low noise.
+The nonlinear (Born-rule) map from angles to probabilities is performed entirely by the exchange circuit.
+As an ablation we also use \emph{data re-uploading} \citep{perez2020data}: each active feature drives
+its own exchange block and the blocks are applied in sequence. To isolate the read-out, we further pair
+the circuit with a two-layer \emph{MLP controller}. This is the same network as our classical MLP
+baseline, but its output is $G$ angles instead of $V$ logits.
+
+We use two connectivities. A \emph{butterfly} network pairs $k\leftrightarrow k\oplus2^s$ in layer
+$s=0,\dots,\log_2V-1$; the default is 3 blocks, i.e.\ 15 layers and 240 gates for $V=32$. A
+\emph{1D chain} uses nearest-neighbour brick-wall layers, which suits linear quantum-dot arrays.
+
+\subsection{Sampling and training}
+\paragraph{Measurement-based ancestral sampling.} At step $t$ every position runs its circuit once and
+is measured. The classical posterior $q(x_{t-1}|x_t^i,\hat x_0^i)$ is then sampled, and the next round
+re-prepares $\ket{e_{x^i_{t-1}}}$. Because Eq.~\eqref{eq:rev} is a mixture over $\hat x_0$, a single
+shot per token per step samples the model exactly. No amplitude or probability estimation is required.
+Generating $L$ tokens costs $LT$ circuit executions of depth $D$ on $V$ qubits, and positions are
+independent within a step.
+\paragraph{Training.} We minimise the D3PM hybrid objective
+$T\,\mathcal L_{t-1}+\lambda\,\mathrm{CE}(x_0)$ with a single random $t$ per sequence and $\lambda=0.01$
+\citep{austin2021structured}. In simulation we differentiate exactly. On hardware, the generator
+$\SWAP$ has eigenvalues $\pm1$, so the two-term parameter-shift rule
+$\partial_\theta f=f(\theta+\tfrac\pi4)-f(\theta-\tfrac\pi4)$ applies to every exchange angle
+\citep{mitarai2018quantum,schuld2019evaluating}. We verified it numerically (Table~\ref{tab:verify}).
+
+\section{Expressivity of exchange on the token register}
+\begin{proposition}[Dark state and sum rule]\label{prop:dark}
+For any exchange circuit, $U\ket W=\ket W$ (up to the removed global phase), where
+$\ket W=V^{-1/2}\sum_k\ket{e_k}$. Consequently $\sum_k\braket{e_k|U|e_x}=1$ for every input $x$.
+\end{proposition}
+\begin{proof}
+$L_{ab}\mathbf 1=0$ for every edge, so each factor $e^{i\theta L_{ab}}$ fixes $\ket W$. Since $U$ is
+unitary, $\bra WU=\bra W$, and
+$\sum_k\braket{e_k|U|e_x}=\sqrt V\braket{W|U|e_x}=\sqrt V\braket{W|e_x}=1$.
+\end{proof}
+Physically, $\ket W$ lies in the maximal-spin multiplet ($S=V/2$). The remaining $V\!-\!1$ states of
+$\mathcal H_1$ have $S=V/2-1$, and SU(2)-invariant exchange cannot couple the two sectors.
+\begin{proposition}[Dynamical Lie algebra]\label{prop:dla}
+For a connected interaction graph, the Lie algebra generated by $\{iL_{ab}\}$ on $\mathcal H_1$ is
+$\mathfrak u(V\!-\!1)$, acting on $\ket W^\perp$ and trivially on $\ket W$.
+\end{proposition}
+We verified Proposition~\ref{prop:dla} numerically by computing the Lie closure for chains and butterflies
+with $V\in\{4,6,8\}$ (Table~\ref{tab:verify}). In every case the dimension equals $(V-1)^2$, not $V^2$.
+\begin{proposition}[Every distribution is reachable]\label{prop:reach}
+For any input $x$ and any distribution $p$ on $\{1..V\}$, there is a $U$ in the group generated by
+exchange with $|\braket{e_k|U|e_x}|^2=p_k$ for all $k$.
+\end{proposition}
+\begin{proof}
+By Prop.~\ref{prop:dla}, $U$ acts as an arbitrary unitary on $\ket W^\perp$. Hence the reachable outputs
+are exactly the unit vectors $\psi$ with $\braket{W|\psi}=\braket{W|e_x}=V^{-1/2}$, i.e.\
+$\|\psi\|=1$ and $\sum_k\psi_k=1$. Write $\psi_k=\sqrt{p_k}e^{i\varphi_k}$. Phases with
+$\sum_k\sqrt{p_k}e^{i\varphi_k}=1$ exist if and only if segments of lengths $\{\sqrt{p_k}\}\cup\{1\}$
+close a polygon. This holds because $\sum_k\sqrt{p_k}\ge\sum_kp_k=1$ and
+$\sqrt{p_j}\le1\le 1+\sum_{k\ne j}\sqrt{p_k}$.
+\end{proof}
+The sum rule therefore does not restrict the set of output distributions. It does restrict
+\emph{how} they are parameterised: the amplitudes are coupled through a shared phase constraint, unlike
+independent softmax logits. Reachability also needs enough depth. On a nearest-neighbour chain, an
+excitation travels at most one site per layer, so with $D<V-1$ layers some outputs have zero
+amplitude. Table~\ref{tab:reach} confirms this. Random Dirichlet targets are fitted to a median KL below
+$10^{-5}$~nats by a single butterfly block (5 layers) and by a 32-layer chain, but a 16-layer chain
+leaves more than 10~nats.
+Conversely, the low dimension of the dynamical Lie algebra ($(V-1)^2$, polynomial in $V$) rules out
+the exponential concentration associated with barren plateaus \citep{mcclean2018barren,ragone2024lie}.
+
+\section{Noise and error detection}
+\label{sec:noise-theory}
+Noise in exchange-only spin qubits mainly comes from four sources \citep{burkard2023semiconductor}:
+\textbf{(a)} quasi-static charge noise on $J$, i.e.\ $\theta\to\theta(1+\epsilon)$;
+\textbf{(b)} dephasing from fluctuating local fields, a random $Z$ phase per qubit and layer;
+\textbf{(c)} energy relaxation $\ket1\to\ket0$ with qubit-dependent rate $\gamma_k$ per layer; and
+\textbf{(d)} readout bit flips with probability $q$. Channels (a) and (b) preserve $\mathcal H_1$. Channel
+(c) maps $\mathcal H_1$ to the vacuum, and (d) acts on classical outcomes. All of them can therefore be
+simulated \emph{exactly} for $V=32$ qubits: we use Monte-Carlo averaging over (a, b), the no-jump
+trajectory for (c), and closed forms for (d).
+
+\paragraph{Hamming-weight check.} Any valid outcome has Hamming weight 1, so checking the weight is a free
+symmetry verification \citep{bonet2018low,mcardle2019error}. A relaxation event yields weight 0 and is
+always detected. Post-selection then returns the normalised no-jump state
+$\propto\mathrm{diag}(\sqrt{1-\gamma_k})^{D}\,U\ket{e_x}$. In particular, \emph{uniform} relaxation
+($\gamma_k\equiv\gamma$) costs only a reduced acceptance rate $(1-\gamma)^D$ and leaves the
+model distribution unchanged. For readout flips, a single flip gives weight 0 or 2 and is detected. An
+undetected error needs two flips, which happens with probability
+$(V\!-\!1)q^2(1-q)^{V-2}=O(Vq^2)$. Compare a dense binary code on $\log_2V$ qubits: there every outcome
+is valid, and errors occur undetected with probability $1-(1-q)^{\log_2V}\approx q\log_2V$.

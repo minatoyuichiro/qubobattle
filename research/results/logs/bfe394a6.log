@@ -1,0 +1,12 @@
+../.venv/bin/python experiments/run.py mlp 2 10000 results/main
+[mlp seed2] step 1000 ce 1.667 valid 3.1844 bpc (47s)
+[mlp seed2] step 2000 ce 1.630 valid 3.0817 bpc (93s)
+[mlp seed2] step 3000 ce 1.625 valid 3.0161 bpc (139s)
+[mlp seed2] step 4000 ce 1.609 valid 2.9668 bpc (184s)
+[mlp seed2] step 5000 ce 1.621 valid 2.9256 bpc (231s)
+[mlp seed2] step 6000 ce 1.613 valid 2.8994 bpc (278s)
+[mlp seed2] step 7000 ce 1.617 valid 2.8804 bpc (323s)
+[mlp seed2] step 8000 ce 1.595 valid 2.8660 bpc (367s)
+[mlp seed2] step 9000 ce 1.601 valid 2.8584 bpc (410s)
+[mlp seed2] step 10000 ce 1.615 valid 2.8576 bpc (455s)
+[mlp_default_hybrid_s2] TEST 2.9220 bpc, params 1704992
