@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exchange-only 量子拡散言語モデル</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --p: #00d2ff; --gold: #ffcc00; --ink: #222; --mute: #777; --bg: #fff; --card: #f6f8fa; --line: #ddd; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e8e8e8; --mute: #999; --bg: #14161a; --card: #1e2228; --line: #333; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 960px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h1 span { background: linear-gradient(45deg, var(--p), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--mute); font-size: .85rem; margin-bottom: 18px; }
+  .card { background: var(--card); border-radius: 18px; padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 1rem; margin: 0 0 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  label { font-size: .8rem; color: var(--mute); display: flex; gap: 6px; align-items: center; }
+  input, select, textarea { font: inherit; font-size: .85rem; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; background: var(--bg); color: var(--ink); }
+  input[type=number] { width: 80px; }
+  textarea { width: 100%; height: 90px; font-family: ui-monospace, monospace; font-size: .75rem; }
+  button { font: inherit; border: none; border-radius: 20px; padding: 8px 18px; background: var(--p); color: #fff; cursor: pointer; font-weight: 800; }
+  button.sec { background: var(--mute); }
+  button:disabled { opacity: .45; cursor: default; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: .95rem; white-space: pre-wrap; word-break: break-all; line-height: 1.7; }
+  .stat { font-size: .8rem; color: var(--mute); }
+  #gen span { display: inline-block; min-width: .62em; text-align: center; border-radius: 3px; cursor: pointer; }
+  #gen span.chg { background: rgba(255, 204, 0, .45); }
+  #gen span.sel { outline: 2px solid var(--p); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  canvas { width: 100%; display: block; }
+  .explain { font-size: .82rem; line-height: 1.7; }
+  .explain code { background: var(--bg); padding: 0 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1><span>Exchange-only</span> 量子離散拡散 言語モデル</h1>
+  <div class="sub">交換相互作用 exp(−iθ·SWAP) だけで作る文字レベル拡散 LM（ブラウザ内で学習・生成）</div>
+
+  <div class="card explain">
+    <b>しくみ</b><br>
+    ① 1文字 = 32 量子ビットの one-hot 状態 <code>|k⟩ = |0…010…0⟩</code>。語彙は <code>a–z 空白 . , ' ? !</code><br>
+    ② ゲートは<b>交換（部分 SWAP）だけ</b>。交換は励起数を保存するので状態は常に 32 次元の単一励起部分空間に留まる（漏れゼロ）。<br>
+    ③ <b>前向き拡散</b>：確率 1−ᾱ<sub>t</sub> で励起量子ビットとランダムな量子ビットを SWAP → 一様遷移の離散拡散（D3PM）。<br>
+    ④ <b>逆拡散</b>：周囲のノイズ文字と時刻 t から交換角 θ を決め、|x<sub>t</sub>⟩ にバタフライ型の交換回路を作用 → 測定で x̂<sub>0</sub> を得て、事後分布 q(x<sub>t−1</sub>|x<sub>t</sub>, x̂<sub>0</sub>) からサンプル。<br>
+    ⑤ 学習は −log|⟨x<sub>0</sub>|U|x<sub>t</sub>⟩|² を随伴法（ユニタリなので逆回路で巻き戻し）で微分。
+  </div>
+
+  <div class="card">
+    <h2>1. 前向き拡散（交換チャネルでノイズ化）</h2>
+    <div class="row"><label>t <input id="fwdT" type="range" min="0" max="32" value="8" style="width:220px"></label><span id="fwdTv" class="stat"></span></div>
+    <div id="fwd" class="mono" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. 学習</h2>
+    <textarea id="corpus"></textarea>
+    <div class="row" style="margin-top:8px">
+      <label>回路 <select id="mode"><option value="additive">additive（加算角）</option><option value="reupload">reupload（再アップロード）</option></select></label>
+      <label>ステップ <input id="steps" type="number" value="3000" min="100" step="100"></label>
+      <label>学習率 <input id="lr" type="number" value="0.002" step="0.0005"></label>
+      <button id="trainBtn">学習開始</button>
+      <button id="stopBtn" class="sec" disabled>停止</button>
+    </div>
+    <div class="stat" id="trainStat" style="margin-top:6px">未学習（交換角はランダム）</div>
+    <canvas id="lossChart" height="120" style="margin-top:8px"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>3. 生成（逆拡散）</h2>
+    <div class="row">
+      <label>長さ <input id="genLen" type="number" value="96" min="8" max="400"></label>
+      <label>温度 <input id="temp" type="number" value="0.7" step="0.1" min="0.1"></label>
+      <label>速度 <input id="speed" type="range" min="10" max="300" value="80"></label>
+      <button id="genBtn">ノイズから生成</button>
+    </div>
+    <div class="stat" id="genStat" style="margin:8px 0">t = –</div>
+    <div id="gen" class="mono"></div>
+    <div class="stat" style="margin-top:6px">文字をクリック → その位置の交換回路の出力分布 |⟨x₀|U|x_t⟩|² を表示</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>測定確率 p(x̂₀)</h2>
+      <canvas id="probChart" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h2>交換回路（1 ブロック目, 色 = 交換角 sin²θ）</h2>
+      <canvas id="circuit" height="180"></canvas>
+    </div>
+  </div>
+</main>
+
+<script src="qdlm.js"></script>
+<script src="corpus.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+$('corpus').value = QDLM_CORPUS;
+
+let model = new QDLM.Model({ seed: Date.now() % 100000 });
+let training = false, losses = [];
+let genState = null; // { x, t, prev, len }
+
+// ---------- 1. 前向き拡散 ----------
+const fwdText = QDLM.encode('alice was beginning to get very tired of sitting by her sister on the bank.');
+function drawForward() {
+  const t = +$('fwdT').value;
+  const xt = model.noise(Int32Array.from(fwdText), t);
+  $('fwdTv').textContent = `ᾱ_t = ${model.abar[t].toFixed(3)}（元の文字が残る確率 ≈ ${(model.abar[t] + (1 - model.abar[t]) / model.V).toFixed(3)}）`;
+  $('fwd').innerHTML = Array.from(xt).map((k, i) => k === fwdText[i] ? QDLM.VOCAB[k] : `<span style="color:#ff4757">${QDLM.VOCAB[k]}</span>`).join('');
+}
+$('fwdT').oninput = drawForward;
+
+// ---------- 2. 学習 ----------
+function drawLoss() {
+  const c = $('lossChart'), dpr = devicePixelRatio || 1;
+  c.width = c.clientWidth * dpr; c.height = 120 * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const W = c.clientWidth, H = 120;
+  g.clearRect(0, 0, W, H);
+  const lo = 0, hi = Math.log(32);
+  g.strokeStyle = css('--line'); g.setLineDash([4, 4]);
+  g.beginPath(); g.moveTo(0, 6); g.lineTo(W, 6); g.stroke(); g.setLineDash([]);
+  g.fillStyle = css('--mute'); g.font = '11px sans-serif';
+  g.fillText('一様分布 log 32 = 3.47', 4, 18);
+  if (losses.length < 2) return;
+  // 移動平均
+  const sm = []; let acc = losses[0];
+  for (const l of losses) { acc = 0.97 * acc + 0.03 * l; sm.push(acc); }
+  g.strokeStyle = css('--p'); g.lineWidth = 2; g.beginPath();
+  sm.forEach((l, i) => {
+    const x = i / (sm.length - 1) * W, y = 6 + (1 - (l - lo) / (hi - lo)) * (H - 12);
+    i ? g.lineTo(x, y) : g.moveTo(x, y);
+  });
+  g.stroke();
+}
+
+$('trainBtn').onclick = () => {
+  const ids = QDLM.encode($('corpus').value);
+  if (ids.length < 100) { alert('コーパスが短すぎます（100 文字以上）'); return; }
+  const corpus = Int32Array.from(ids);
+  const mode = $('mode').value;
+  model = new QDLM.Model({ seed: Date.now() % 100000, mode });
+  losses = [];
+  const steps = +$('steps').value, lr0 = +$('lr').value;
+  let s = 0;
+  training = true;
+  $('trainBtn').disabled = true; $('stopBtn').disabled = false; $('mode').disabled = true;
+  const t0 = performance.now();
+  (function tick() {
+    if (!training) return finish();
+    const tEnd = performance.now() + 60;
+    while (s < steps && performance.now() < tEnd) {
+      const lr = lr0 * 0.5 * (1 + Math.cos(Math.PI * s / steps));
+      losses.push(model.trainBatch(corpus, { lr }));
+      s++;
+    }
+    $('trainStat').textContent = `step ${s}/${steps}  loss ${(losses.slice(-50).reduce((a, b) => a + b, 0) / Math.min(50, losses.length)).toFixed(3)} nats  (${((performance.now() - t0) / 1000).toFixed(0)}s)  交換ゲート ${model.G} 個/ブロック・パラメータ ${(model.W.length / 1e6).toFixed(2)}M`;
+    drawLoss();
+    if (s >= steps) return finish();
+    setTimeout(tick, 0);
+  })();
+  function finish() {
+    training = false;
+    $('trainBtn').disabled = false; $('stopBtn').disabled = true; $('mode').disabled = false;
+    $('trainBtn').textContent = '最初から学習';
+  }
+};
+$('stopBtn').onclick = () => { training = false; };
+
+// ---------- 3. 生成 ----------
+let selPos = 0;
+function renderGen() {
+  if (!genState) return;
+  const { x, prev } = genState;
+  $('gen').innerHTML = Array.from(x).map((k, i) => {
+    const cls = [prev && prev[i] !== k ? 'chg' : '', i === selPos ? 'sel' : ''].join(' ');
+    const ch = QDLM.VOCAB[k] === ' ' ? '&nbsp;' : QDLM.VOCAB[k];
+    return `<span class="${cls}" data-i="${i}">${ch}</span>`;
+  }).join('');
+  drawProb();
+}
+$('gen').onclick = e => { const i = e.target.dataset && e.target.dataset.i; if (i !== undefined) { selPos = +i; renderGen(); } };
+
+$('genBtn').onclick = () => {
+  const len = Math.max(8, Math.min(400, +$('genLen').value));
+  genState = { x: model.initSample(len), t: model.T, prev: null };
+  selPos = Math.min(selPos, len - 1);
+  $('genBtn').disabled = true;
+  renderGen();
+  (function step() {
+    const { x, t } = genState;
+    if (t < 1) { $('genBtn').disabled = false; $('genStat').textContent = 't = 0（完了）'; genState.prev = null; renderGen(); return; }
+    const { next } = model.denoiseStep(x, t, { temperature: +$('temp').value });
+    genState = { x: next, t: t - 1, prev: x, lastT: t };
+    $('genStat').textContent = `t = ${t - 1} / ${model.T}`;
+    renderGen();
+    setTimeout(step, 310 - +$('speed').value);
+  })();
+};
+
+// 選択位置の出力分布と回路
+function drawProb() {
+  const c = $('probChart'), dpr = devicePixelRatio || 1;
+  c.width = c.clientWidth * dpr; c.height = 180 * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const W = c.clientWidth, H = 180;
+  g.clearRect(0, 0, W, H);
+  if (!genState) return;
+  const t = Math.max(1, genState.t);
+  const p = model.probs(genState.x, selPos, t, new Float64Array(model.V));
+  const bw = W / model.V;
+  g.font = '10px monospace'; g.textAlign = 'center';
+  for (let k = 0; k < model.V; k++) {
+    const h = p[k] * (H - 30);
+    g.fillStyle = k === genState.x[selPos] ? css('--gold') : css('--p');
+    g.fillRect(k * bw + 1, H - 16 - h, bw - 2, h);
+    g.fillStyle = css('--mute');
+    g.fillText(QDLM.VOCAB[k] === ' ' ? '␣' : QDLM.VOCAB[k], k * bw + bw / 2, H - 4);
+  }
+  g.textAlign = 'left'; g.fillStyle = css('--ink');
+  g.fillText(`位置 ${selPos}, 入力 |${QDLM.VOCAB[genState.x[selPos]]}⟩, t=${t}  (黄 = 入力と同じ文字)`, 4, 12);
+  drawCircuit();
+}
+
+function drawCircuit() {
+  const c = $('circuit'), dpr = devicePixelRatio || 1;
+  c.width = c.clientWidth * dpr; c.height = 180 * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const W = c.clientWidth, H = 180, V = model.V;
+  g.clearRect(0, 0, W, H);
+  const layers = Math.log2(V), perLayer = V / 2;
+  const y = q => 6 + q * (H - 12) / (V - 1);
+  g.strokeStyle = css('--line'); g.lineWidth = 1;
+  for (let q = 0; q < V; q++) { g.beginPath(); g.moveTo(0, y(q)); g.lineTo(W, y(q)); g.stroke(); }
+  if (genState) {
+    model.computeTheta(model.features(genState.x, selPos, Math.max(1, genState.t)));
+    // 入力量子ビット
+    g.fillStyle = css('--gold'); g.beginPath(); g.arc(6, y(genState.x[selPos]), 4, 0, 7); g.fill();
+  }
+  for (let l = 0; l < layers; l++) {
+    for (let k = 0; k < perLayer; k++) {
+      const gi = l * perLayer + k, a = model.pa[gi], b = model.pb[gi];
+      const x = 20 + (l + (k / perLayer) * 0.8) * (W - 30) / layers;
+      const s2 = genState ? Math.sin(model.theta[gi]) ** 2 : 0.3;
+      g.strokeStyle = `rgba(0,210,255,${0.15 + 0.85 * s2})`; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(x, y(a)); g.lineTo(x, y(b)); g.stroke();
+    }
+  }
+}
+
+addEventListener('resize', () => { drawLoss(); drawProb(); });
+drawForward(); drawLoss(); drawCircuit();
+</script>
+</body>
+</html>
